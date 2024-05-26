@@ -28,9 +28,9 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // GET: api/Mafia/ListRoom
         [HttpGet("ListRoom")]
-        public ActionResult<List<Room>> ListRoom([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<List<Room>>> ListRoom([FromQuery] int page, [FromQuery] int size)
         {
-            var rooms = _mafiaService.ListRoomAsync(page, size);
+            var rooms = await _mafiaService.ListRoomAsync(page, size);
             return Ok(rooms);
         }
 
