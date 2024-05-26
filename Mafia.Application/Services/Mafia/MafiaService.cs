@@ -1,8 +1,14 @@
-﻿using Mafia.Domain.Data.Adapters;
+﻿using AutoMapper;
+using AutoMapper.QueryableExtensions;
+using DocumentFormat.OpenXml.Spreadsheet;
+using Mafia.Application.Mappings;
+using Mafia.Application.Paggination;
+using Mafia.Domain.Data.Adapters;
 using Mafia.Domain.Entities;
 using Mafia.Domain.Entities.Game;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,12 +20,15 @@ namespace Mafia.Application.Services.Mafia
     public class MafiaService : IMafiaService
     {
         private readonly MafiaDbContext _context;
+        private readonly IMapper _mapper;
         private readonly IHubContext<ChatHub> _hubContext;
 
-        public MafiaService(MafiaDbContext context, IHubContext<ChatHub> hubContext)
+        public MafiaService(MafiaDbContext context, IHubContext<ChatHub> hubContext,
+        IMapper mapper)
         {
             _context = context;
             _hubContext = hubContext;
+            _mapper = mapper;
         }
 
 
@@ -42,13 +51,19 @@ namespace Mafia.Application.Services.Mafia
 
             _context.RoomPlayers.Add(roomP);
             _context.SaveChanges();
+            // Подключаем пользователя к группе комнаты
+            await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", room.RoomNumber);
 
+            // Уведомляем всех игроков в комнате о новом участнике
+            await _hubContext.Clients.Group(room.RoomNumber).SendAsync("UserJoined", name);
             return room.Id;
         }
 
-        public List<Room> ListRoom()
+        public async Task<PaginatedList<RoomResponse>> ListRoomAsync(int page, int size)
         {
-            return _context.Rooms.Include(r => r.Players).Include(r => r.Stages).ToList();
+            return await _context.Rooms.Include(r => r.Players).Include(r => r.Stages)
+                     .ProjectTo<RoomResponse>(_mapper.ConfigurationProvider)
+                     .PaginatedListAsync(page, size); ;
         }
 
         string GenerateRandomText(int length)
@@ -66,7 +81,7 @@ namespace Mafia.Application.Services.Mafia
             return stringBuilder.ToString();
         }
 
-        public Room CreateRoom(string adminId, int roomMafia, int playerCount)
+        public RoomResponse CreateRoom(string adminId, int roomMafia, int playerCount)
         {
 
             var room = new Room
@@ -86,8 +101,8 @@ namespace Mafia.Application.Services.Mafia
 
             _context.Rooms.Add(room);
             _context.SaveChanges();
-
-            return room;
+            var record = _mapper.Map<Room, RoomResponse>(room);
+            return record;
         }
 
         public void DisablePlayer(string playerId)
@@ -107,11 +122,10 @@ namespace Mafia.Application.Services.Mafia
 
         public void StartGame(int roomId)
         {
-            var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
-            if (room != null && room.Players.Count == room.PlayerCount)
+            var room = _context.Rooms.Include(r => r.Players).Include(e => e.Stages).FirstOrDefault(r => r.Id == roomId);
+            if (room != null && room.Players.Count == room.PlayerCount && room.Stages.Count == 0)
             {
                 var roles = new List<RoomRole>();
-
                 // Add the specified number of mafia roles
                 for (int i = 0; i < room.MafiaCount; i++)
                 {
@@ -149,26 +163,51 @@ namespace Mafia.Application.Services.Mafia
 
                 room.Stages.Add(stage);
                 _context.SaveChanges();
+
+                foreach (var temp in room.Players)
+                {
+                    var roomStage = new RoomStagePlayer()
+                    {
+                        PlayerId = temp.Id,
+                        RoomId = stage.Id,
+                    };
+                    _context.RoomStagePlayers.Add(roomStage);
+                    _context.SaveChanges();
+                }
             }
             else
             {
-                throw new InvalidOperationException("Room not found or player count does not match the required player count");
+                throw new InvalidOperationException("Room not found or player count does not match the required player count or Game is started");
             }
         }
 
         public List<PlayerStatus> GetAllPlayerStatusLive(int roomId)
         {
-            var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
+            var room = _context.Rooms.Include(r => r.Players).ThenInclude(e => e.Player).FirstOrDefault(r => r.Id == roomId);
             if (room != null)
             {
                 return room.Players.Select(p => new PlayerStatus
                 {
                     PlayerId = p.PlayerId,
+                    PlayerUserName = p.Player.UserName,
                     PlayerName = p.PlayerName,
                     IsAlive = p.RoomEnabled,
                     Role = p.RoomRole,
                     RoomNumber = p.Room.RoomNumber
                 }).ToList();
+            }
+            else
+            {
+                throw new InvalidOperationException("Room not found");
+            }
+        }
+
+        private List<int> GetAllPlayerStatusLiveCheck(int roomId)
+        {
+            var room = _context.Rooms.Include(r => r.Players).ThenInclude(e => e.Player).FirstOrDefault(r => r.Id == roomId);
+            if (room != null)
+            {
+                return room.Players.Where(e => e.RoomEnabled).Select(p => p.Id).ToList();
             }
             else
             {
@@ -204,10 +243,10 @@ namespace Mafia.Application.Services.Mafia
 
             var currentStage = room.Stages.OrderByDescending(e => e.Stage).FirstOrDefault();
 
-            // Функция для проверки завершения всех этапов ночи
+            //Функция для проверки завершения всех этапов ночи
             bool IsNightComplete(RoomStage stage)
             {
-                return stage.Nigth && stage.Mafia && stage.Doctor && stage.Putana && stage.Commisar_whore;
+                return stage.Mafia && stage.Doctor && stage.Putana && stage.Commisar_whore;
             }
 
             // Если начинается ночь, и все предыдущие ночные этапы завершены, создаем новую стадию
@@ -222,6 +261,19 @@ namespace Mafia.Application.Services.Mafia
                     };
                     room.Stages.Add(newStage);
                     currentStage = newStage;
+                    _context.SaveChanges();
+
+                    var players = GetAllPlayerStatusLiveCheck(room.Id);
+                    foreach (var temp in players)
+                    {
+                        var roomStage = new RoomStagePlayer()
+                        {
+                            PlayerId = temp,
+                            RoomId = currentStage.Id,
+                        };
+                        _context.RoomStagePlayers.Add(roomStage);
+                        _context.SaveChanges();
+                    }
                 }
                 else if (currentStage == null || !IsNightComplete(currentStage))
                 {
@@ -234,40 +286,71 @@ namespace Mafia.Application.Services.Mafia
                 case RoomStageUpdateType.StartNight:
                     currentStage.Nigth = true;
                     room.Status = Status.nigth;
-                    await NotifyPlayers(roomId, "Night has started.");
+
+
+                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("NightTime", $"" +
+                        $" It's nighttime. Roles take your actions.");
+
                     break;
                 case RoomStageUpdateType.NightMafia:
                     currentStage.Mafia = true;
-                    await NotifyRole(roomId, "Mafia", "It's your turn.");
+                    var listM = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Mafia).Select(e => e.PlayerUserName);
+                    foreach (var temp in listM)
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("MafiaTurn", "It's your turn, Mafia");
+                    }
                     // Implement mafia logic
                     break;
                 case RoomStageUpdateType.NightDoctor:
                     currentStage.Doctor = true;
-                    await NotifyRole(roomId, "Doctor", "It's your turn.");
+                    var listD = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Doctor).Select(e => e.PlayerUserName);
+                    foreach (var temp in listD)
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("DoctorTurn", "It's your turn, Doctor");
+                    }
                     // Implement doctor logic
                     break;
                 case RoomStageUpdateType.NightWhore:
                     currentStage.Putana = true;
-                    await NotifyRole(roomId, "Whore", "It's your turn.");
+                    var listP = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Putana).Select(e => e.PlayerUserName);
+                    foreach (var temp in listP)
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("PutanaTurn", "It's your turn, Putana");
+                    }
                     // Implement whore logic
                     break;
                 case RoomStageUpdateType.CommisarWhore:
                     currentStage.Commisar_whore = true;
-                    await NotifyRole(roomId, "CommissarWhore", "It's your turn.");
+                    var listC = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Commisar).Select(e => e.PlayerUserName);
+                    foreach (var temp in listC)
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("CommisarTurn", "It's your turn, Commisar");
+                    }
                     // Implement commisar whore logic
                     break;
                 case RoomStageUpdateType.StartDay:
-                    if (currentStage != null && IsNightComplete(currentStage))
-                    {
-                        currentStage.Day = true;
-                        room.Status = Status.day;
-                        await NotifyPlayers(roomId, "Day has started.");
-                        // Return statuses of players to all
-                    }
-                    else
-                    {
-                        throw new InvalidOperationException("Cannot start the day until the night stages are completed.");
-                    }
+                    currentStage.Day = true;
+                    room.Status = Status.day;
+                    //if (currentStage != null && IsNightComplete(currentStage))
+                    //{
+                    //    currentStage.Day = true;
+                    //    room.Status = Status.day;
+                    //    await NotifyPlayers(roomId, "Day has started.");
+                    //    // Return statuses of players to all
+                    //}
+                    //else
+                    //{
+                    //    throw new InvalidOperationException("Cannot start the day until the night stages are completed.");
+                    //}
+
+                    var userD = _context.RoomStagePlayers
+                        .OrderByDescending(e => e.Mafia)
+                        .Include(e => e.Room)
+                        .Include(e => e.Player)
+                        .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia);
+                    userD.Player.RoomEnabled = false;
+
+                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
                     break;
             }
 
@@ -284,12 +367,19 @@ namespace Mafia.Application.Services.Mafia
             await _hubContext.Clients.Group($"{roomId}_{role}").SendAsync("ReceiveMessage", message);
         }
 
-        public void PlayerVote(int roomId, string votingPlayerId, string targetPlayerId)
+        public void PlayerVote(int roomId, string playerId)
         {
             var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
             if (room != null)
             {
-                // Implement voting logic
+                var stagePlayers = _context.RoomStagePlayers
+                    .Include(e => e.Room)
+                    .Include(e => e.Player)
+                    .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.Player.PlayerId == playerId);
+
+                stagePlayers.Day = true;
+                stagePlayers.DayCount += 1;
+                _context.SaveChanges();
             }
             else
             {
@@ -300,42 +390,99 @@ namespace Mafia.Application.Services.Mafia
         public async Task<GameStatus> UpdateGameStatus(int roomId)
         {
             var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
-            if (room != null)
-            {
-                var mafiaCount = room.Players.Count(p => p.RoomRole == RoomRole.Mafia && !p.RoomEnabled);
-                var civilianCount = room.Players.Count(p => p.RoomRole != RoomRole.Mafia && !p.RoomEnabled);
+            var mafiaCount = room.Players.Count(p => p.RoomRole == RoomRole.Mafia && !p.RoomEnabled);
+            var civilianCount = room.Players.Count(p => p.RoomRole != RoomRole.Mafia && !p.RoomEnabled);
 
-                if (mafiaCount == 0)
-                {
-                    await NotifyPlayers(roomId, "The game has ended. Citizens win!");
-                    return new GameStatus
-                    {
-                        Status = Status.citizen_win,
-                        PlayerCount = civilianCount
-                    };
-                }
-                else if (mafiaCount >= civilianCount)
-                {
-                    await NotifyPlayers(roomId, "The game has ended. Mafia wins!");
-                    return new GameStatus
-                    {
-                        Status = Status.mafia_win,
-                        PlayerCount = mafiaCount
-                    };
-                }
-                else
-                {
-                    return new GameStatus
-                    {
-                        Status = Status.winner_not,
-                        PlayerCount = room.Players.Count
-                    };
-                }
+            var result = new GameStatus();
+            bool mafiawin = false;
+            bool civilianwin = false;
+            if (mafiaCount == 0)
+            {
+                civilianwin = true;
+            }
+            else if (mafiaCount >= civilianCount)
+            {
+                mafiawin = true;
+            }
+            var user = _context.RoomStagePlayers.OrderByDescending(e => e.DayCount)
+                        .Include(e => e.Room)
+                        .Include(e => e.Player)
+                        .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber);
+            user.Player.RoomEnabled = false;
+
+            result.MafiaWin = mafiawin;
+            result.CivilianWin = civilianwin;
+            result.PlayerId = user.Player.PlayerId;
+            result.PlayerName = user.Player.PlayerName;
+
+
+            if (result.MafiaWin)
+            {
+                room.Status = Status.mafia_win;
+                room.EndDate = DateTime.Now;
+                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мафия выиграла");
+            }
+            else if (result.CivilianWin)
+            {
+                room.Status = Status.citizen_win;
+                room.EndDate = DateTime.Now;
+                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мирные выиграли");
             }
             else
             {
-                throw new InvalidOperationException("Room not found");
+                room.Status = Status.winner_not;
+                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Ночью не выжил: {user.Player.PlayerName}.");
             }
+            _context.SaveChanges();
+            return result;
+        }
+
+        public async Task<int> UserRefresh(string userId, string roomNumber, string roomPassword)
+        {
+            var user = await _context.RoomPlayers.FirstOrDefaultAsync(e => e.PlayerId == userId);
+            if (user == null)
+            {
+                throw new InvalidOperationException("User not found");
+            }
+            // Подключаем пользователя к группе комнаты
+            await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", roomNumber);
+
+            // Уведомляем всех игроков в комнате о новом участнике
+            await _hubContext.Clients.Group(roomNumber).SendAsync("UserJoined", user.PlayerName);
+
+            return user.RoomId;
+        }
+
+        public async Task<bool> MafiaVote(int roomId, string playerId)
+        {
+            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+            vote.Mafia = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> CommisarVote(int roomId, string playerId)
+        {
+            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+            vote.Commisar_whore = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> PutanaVote(int roomId, string playerId)
+        {
+            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+            vote.Putana = true;
+            await _context.SaveChangesAsync();
+            return true;
+        }
+
+        public async Task<bool> DoctorVote(int roomId, string playerId)
+        {
+            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+            vote.Doctor = true;
+            await _context.SaveChangesAsync();
+            return true;
         }
     }
 }

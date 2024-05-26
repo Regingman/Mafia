@@ -34,6 +34,12 @@ namespace Mafia.WebApi.Controllers
         }
 
         // GET: api/<UserControllers>
+        /// <summary>
+        /// Получение списка ролей
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<ApplicationUserRoles>>> GetAsync([FromQuery] int page, [FromQuery] int size)
         {
@@ -49,6 +55,11 @@ namespace Mafia.WebApi.Controllers
         }
 
         // POST api/<UserControllers>
+        /// <summary>
+        /// Создание пользователя
+        /// </summary>
+        /// <param name="user"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult<ApplicationUser>> PostAsync([FromBody] UserCreate user)
         {
@@ -70,6 +81,12 @@ namespace Mafia.WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Изменение пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="user"></param>
+        /// <returns></returns>
         [HttpPut("{id}")]
         public async Task<ActionResult<ApplicationUser>> PutAsync(String id, [FromBody] UserCreate user)
         {
@@ -84,6 +101,11 @@ namespace Mafia.WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Получение пользователя по Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<ApplicationUser>> GetAsync(string id)
         {
@@ -98,6 +120,11 @@ namespace Mafia.WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Блокировка пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Block")]
         public async Task<IActionResult> Block(string id)
@@ -114,6 +141,11 @@ namespace Mafia.WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Разблокировка пользователя
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("UnBlock")]
         public async Task<IActionResult> UnBlock(string id)
@@ -130,6 +162,11 @@ namespace Mafia.WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Сброс пароля до Test123!
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("Reset")]
         public async Task<ActionResult> Reset(string id)
@@ -146,6 +183,13 @@ namespace Mafia.WebApi.Controllers
             }
         }
 
+        /// <summary>
+        /// Изменение пароля
+        /// </summary>
+        /// <param name="id"></param>
+        /// <param name="oldPassword"></param>
+        /// <param name="newPassword"></param>
+        /// <returns></returns>
         [HttpPost]
         [Route("ChangePassword")]
         public async Task<ActionResult> ChangePassword(string id, string oldPassword, string newPassword)

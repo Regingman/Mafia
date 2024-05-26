@@ -31,6 +31,12 @@ namespace Mafia.WebApi.Controllers
         }
 
         // GET: api/<RoleControllers>
+        /// <summary>
+        /// Получение списка ролей
+        /// </summary>
+        /// <param name="page"></param>
+        /// <param name="size"></param>
+        /// <returns></returns>
         [HttpGet]
         public async Task<ActionResult<IEnumerable<RoleAndPermissions>>> Get([FromQuery] int page, [FromQuery] int size)
         {
@@ -61,6 +67,11 @@ namespace Mafia.WebApi.Controllers
         }
 
         // GET: api/<RoleControllers>
+        /// <summary>
+        /// Получение Роли по Id
+        /// </summary>
+        /// <param name="id"></param>
+        /// <returns></returns>
         [HttpGet("{id}")]
         public async Task<ActionResult<IEnumerable<RoleAndPermissions>>> Get(string id)
         {
@@ -85,42 +96,13 @@ namespace Mafia.WebApi.Controllers
                 return new BadRequestObjectResult(e.Message);
             }
         }
-        // GET: api/<RoleControllers>
-        [HttpPost("{id}")]
-        public async Task<ActionResult<IEnumerable<RoleAndPermissions>>> Get(string id, [FromBody] int[] arrayIds)
-        {
-            try
-            {
-                var roles = await _roleManager.Roles.Select(e => new RoleAndPermissions { Id = e.Id, Name = e.Name }).FirstOrDefaultAsync(e => e.Id == id);
-                var listPermis = new List<ControllerAndRoles>();
-
-                var permissions = await _context.ControllerAndRoles
-                    .Include(e => e.ActionForUser)
-                    .Where(e => e.IdentityRoleId == id)
-                    .ToListAsync();
-                _context.ControllerAndRoles.RemoveRange(permissions);
-                await _context.SaveChangesAsync();
-                foreach (var temp in arrayIds)
-                {
-                    listPermis.Add(new ControllerAndRoles
-                    {
-                        ActionForUserId = temp,
-                        IdentityRoleId = roles.Id
-                    });
-                }
-
-                _context.ControllerAndRoles.AddRange(listPermis);
-                await _context.SaveChangesAsync();
-
-                return new JsonResult(listPermis);
-            }
-            catch (Exception e)
-            {
-                return new BadRequestObjectResult(e.Message);
-            }
-        }
 
         // GET: api/<RoleControllers>
+        /// <summary>
+        /// Создание роли
+        /// </summary>
+        /// <param name="roleT"></param>
+        /// <returns></returns>
         [HttpPost]
         public async Task<ActionResult> Post([FromBody] IdentityRoleName roleT)
         {

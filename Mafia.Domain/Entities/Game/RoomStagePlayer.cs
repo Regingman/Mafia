@@ -12,6 +12,7 @@ namespace Mafia.Domain.Entities.Game
         public int PlayerId { get; set; }
 
         public bool Day { get; set; } = false;
+        public int DayCount { get; set; } = 0;
         public bool Nigth { get; set; } = false;
         public bool Mafia { get; set; } = false;
         public bool Doctor { get; set; } = false;

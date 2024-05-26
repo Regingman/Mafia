@@ -22,24 +22,23 @@ namespace Mafia.WebApi.Controllers
             _mafiaService = mafiaService;
             _hubContext = hubContext;
         }
-
-        // POST: api/Mafia/UserCreate
-        [HttpPost("UserCreate")]
-        public async Task<ActionResult<int>> UserCreate([FromBody] UserCreateRequest request)
-        {
-            var userId = await _mafiaService.UserCreate(request.UserId, request.RoomNumber, request.RoomPassword, request.Name, request.Age, request.Gender, request.Photo);
-            await _hubContext.Clients.Group(request.RoomNumber).SendAsync("UserConnected", userId);
-            return Ok(userId);
-        }
-
+        /// <summary>
+        /// Список комнат для админа
+        /// </summary>
+        /// <returns></returns>
         // GET: api/Mafia/ListRoom
         [HttpGet("ListRoom")]
-        public ActionResult<List<Room>> ListRoom()
+        public ActionResult<List<Room>> ListRoom([FromQuery] int page, [FromQuery] int size)
         {
-            var rooms = _mafiaService.ListRoom();
+            var rooms = _mafiaService.ListRoomAsync(page, size);
             return Ok(rooms);
         }
 
+        /// <summary>
+        /// Создание комнаты для админа
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         // POST: api/Mafia/CreateRoom
         [HttpPost("CreateRoom")]
         public ActionResult<Room> CreateRoom([FromBody] CreateRoomRequest request)
@@ -49,6 +48,11 @@ namespace Mafia.WebApi.Controllers
         }
 
         // PUT: api/Mafia/DisablePlayer
+        /// <summary>
+        /// Заблокировать пользователя
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         [HttpPut("DisablePlayer")]
         public IActionResult DisablePlayer([FromBody] DisablePlayerRequest request)
         {
@@ -56,9 +60,43 @@ namespace Mafia.WebApi.Controllers
             return Ok();
         }
 
+        // POST: api/Mafia/UserCreate
+        /// <summary>
+        /// Подключение нового игрока к комнате
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("UserCreate")]
+        public async Task<ActionResult<int>> UserCreate([FromBody] UserCreateRequest request)
+        {
+            var userId = await _mafiaService.UserCreate(request.UserId, request.RoomNumber, request.RoomPassword, request.Name, request.Age, request.Gender, request.Photo);
+
+            return Ok(userId);
+        }
+
+        // POST: api/Mafia/UserCreate
+        /// <summary>
+        /// Переподключение в игру
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        [HttpPost("RefreshConnection")]
+        public async Task<ActionResult<int>> RefreshConnection([FromBody] UserRefreshRequest request)
+        {
+            var userId = await _mafiaService.UserRefresh(request.UserId, request.RoomNumber, request.RoomPassword);
+
+            return Ok(userId);
+        }
+
+
+        /// <summary>
+        /// Начало игры
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <returns></returns>
         // POST: api/Mafia/StartGame
         [HttpPost("StartGame")]
-        public async Task<IActionResult> StartGameAsync([FromBody] int roomId)
+        public async Task<IActionResult> StartGameAsync([FromQuery] int roomId)
         {
             _mafiaService.StartGame(roomId);
             // Получаем всех игроков и их роли в комнате
@@ -66,15 +104,18 @@ namespace Mafia.WebApi.Controllers
 
             foreach (var playerStatus in playerStatuses)
             {
-                // Добавляем игроков в группы в зависимости от их ролей
-                await _hubContext.Clients.User(playerStatus.PlayerId).SendAsync("AddToRoleGroup", playerStatus.PlayerId, playerStatus.RoomNumber, playerStatus.Role);
 
-                // Уведомляем игроков о начале игры и их роли
-                await _hubContext.Clients.User(playerStatus.PlayerId).SendAsync("GameStarted", playerStatus.Role);
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("GameStarted", playerStatus.Role);
             }
+
             return Ok();
         }
 
+        /// <summary>
+        /// Админ получает список всех живых игроков
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <returns></returns>
         // GET: api/Mafia/GetAllPlayerStatusLive/{roomId}
         [HttpGet("GetAllPlayerStatusLive/{roomId}")]
         public ActionResult<List<PlayerStatus>> GetAllPlayerStatusLive(int roomId)
@@ -83,6 +124,11 @@ namespace Mafia.WebApi.Controllers
             return Ok(statuses);
         }
 
+        /// <summary>
+        /// Пользователь получает список живых игроков
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <returns></returns>
         // GET: api/Mafia/GetAllPlayerStatusLiveUser/{roomId}
         [HttpGet("GetAllPlayerStatusLiveUser/{roomId}")]
         public ActionResult<List<PlayerStatus>> GetAllPlayerStatusLiveUser(int roomId)
@@ -91,6 +137,11 @@ namespace Mafia.WebApi.Controllers
             return Ok(statuses);
         }
 
+        /// <summary>
+        /// Изменение этапа игры, день, ночь, мафия ходит и т д
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         // PUT: api/Mafia/RoomStageUpdate
         [HttpPut("RoomStageUpdate")]
         public IActionResult RoomStageUpdate([FromBody] RoomStageUpdateRequest request)
@@ -99,14 +150,76 @@ namespace Mafia.WebApi.Controllers
             return Ok();
         }
 
+        /// <summary>
+        /// Выбор мафии
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
         // POST: api/Mafia/PlayerVote
-        [HttpPost("PlayerVote")]
-        public IActionResult PlayerVote([FromBody] PlayerVoteRequest request)
+        [HttpPost("MafiaVote")]
+        public IActionResult PlayerVote([FromQuery] int roomId, [FromQuery] string playerId)
         {
-            _mafiaService.PlayerVote(request.RoomId, request.VotingPlayerId, request.TargetPlayerId);
+            _mafiaService.MafiaVote(roomId, playerId);
             return Ok();
         }
 
+        /// <summary>
+        /// Выбор коммисара
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/PlayerVote
+        [HttpPost("CommisarVote")]
+        public async Task<IActionResult> CommisarVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        {
+            await _mafiaService.CommisarVote(roomId, playerId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Выбор путаны
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/PlayerVote
+        [HttpPost("PutanaVote")]
+        public async Task<IActionResult> PutanaVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        {
+            await _mafiaService.PutanaVote(roomId, playerId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Выбор доктора
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/PlayerVote
+        [HttpPost("DoctorVote")]
+        public async Task<IActionResult> DoctorVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        {
+            await _mafiaService.DoctorVote(roomId, playerId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Голосование игроков днем за выбор убить его
+        /// </summary>
+        /// <param name="request"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/PlayerVote
+        [HttpPost("PlayerVote")]
+        public async Task<IActionResult> PlayerVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        {
+            _mafiaService.PlayerVote(roomId, playerId);
+            return Ok();
+        }
+
+        /// <summary>
+        /// Изменение статуса игры, выиграли проиграл
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <returns></returns>
         // GET: api/Mafia/UpdateGameStatus/{roomId}
         [HttpGet("UpdateGameStatus/{roomId}")]
         public ActionResult<GameStatus> UpdateGameStatus(int roomId)
@@ -126,6 +239,14 @@ namespace Mafia.WebApi.Controllers
         public int Age { get; set; }
         public Gender Gender { get; set; }
         public string Photo { get; set; }
+    }
+
+    // Пример моделей запросов
+    public class UserRefreshRequest
+    {
+        public string UserId { get; set; }
+        public string RoomNumber { get; set; }
+        public string RoomPassword { get; set; }
     }
 
     public class CreateRoomRequest

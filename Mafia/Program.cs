@@ -31,6 +31,8 @@ using DotNetEnv;
 using static System.Environment;
 using Serilog;
 using Microsoft.Extensions.FileProviders;
+using Mafia.Application.Services.Mafia;
+using Microsoft.AspNetCore.SignalR;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -49,6 +51,18 @@ Serilog.Log.Logger = new LoggerConfiguration()
     .CreateLogger();
 
 var optionsBuilder = new DbContextOptionsBuilder<MafiaDbContext>();
+
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy(name: MyAllowSpecificOrigins,
+                      builder =>
+                      {
+                          builder.WithOrigins("http://localhost:5000") // Укажите здесь URL фронтенда
+                                 .AllowAnyHeader()
+                                 .AllowAnyMethod().SetIsOriginAllowed(_ => true)
+                                 .AllowCredentials();
+                      });
+});
 if (builder.Environment.IsDevelopment())
 {
     optionsBuilder.UseNpgsql(builder.Configuration.GetConnectionString("DefaultConnection"));
@@ -87,15 +101,7 @@ builder.Services.AddHttpClient();
 // Learn more about configuring Swagger/OpenAPI at https://aka.ms/aspnetcore/swashbuckle
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen();
-builder.Services.AddCors(options =>
-{
-    options.AddPolicy(name: MyAllowSpecificOrigins,
-                      builder =>
-                      {
-                          builder.WithOrigins("https://graph.facebook.com/",
-                                              "https://facebook.com/");
-                      });
-});
+
 
 builder.Services.AddAuthorization(auth =>
 {
@@ -104,30 +110,37 @@ builder.Services.AddAuthorization(auth =>
         .RequireAuthenticatedUser().Build());
 });
 
-builder.Services
-    .AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
-    .AddJwtBearer(o =>
+
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
     {
-        var Key = Encoding.UTF8.GetBytes(DotNetEnv.Env.GetString("JWT_KEY", "Variable not found"));
-        o.SaveToken = true;
-        o.TokenValidationParameters = new TokenValidationParameters
+        var key = Encoding.UTF8.GetBytes(DotNetEnv.Env.GetString("JWT_KEY", "Variable not found"));
+
+        options.SaveToken = true;
+        options.TokenValidationParameters = new TokenValidationParameters
         {
-            ValidateIssuer = false, // on production make it true
-            ValidateAudience = false, // on production make it true
+            ValidateIssuer = false, // Change to true in production
+            ValidateAudience = false, // Change to true in production
             ValidateLifetime = true,
             ValidateIssuerSigningKey = true,
             ValidIssuer = builder.Configuration["JWT:Issuer"],
             ValidAudience = builder.Configuration["JWT:Audience"],
-            IssuerSigningKey = new SymmetricSecurityKey(Key),
+            IssuerSigningKey = new SymmetricSecurityKey(key),
             ClockSkew = TimeSpan.Zero
         };
-        o.Events = new JwtBearerEvents
+
+        options.Events = new JwtBearerEvents
         {
-            OnAuthenticationFailed = context =>
+            OnMessageReceived = context =>
             {
-                if (context.Exception.GetType() == typeof(SecurityTokenExpiredException))
+                var accessToken = context.Request.Query["access_token"];
+
+                // If the request is directed to the hub
+                var path = context.HttpContext.Request.Path;
+                if (!string.IsNullOrEmpty(accessToken) && path.StartsWithSegments("/chatHub"))
                 {
-                    context.Response.Headers.Add("IS-TOKEN-EXPIRED", "true");
+                    // Set the token from the query string
+                    context.Token = accessToken;
                 }
                 return Task.CompletedTask;
             }
@@ -174,6 +187,8 @@ builder.Services.AddSingleton<IJobFactory, JobFactory>();
 builder.Services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
 builder.Services.AddHostedService<QuartzHostedService>();
 builder.Services.AddScoped<IUserSession, UserSession>();
+builder.Services.AddSingleton<IUserIdProvider, CustomUserIdProvider>();
+builder.Services.AddScoped<IMafiaService, MafiaService>();
 builder.Services.AddScoped<IUserService, UserService>();
 builder.Services.AddScoped<IAccountService, AccountService>();
 builder.Services.AddTransient<ILogService, LogService>();
@@ -199,6 +214,7 @@ builder.Services.AddSignalR();
 //    options.IdleTimeout = TimeSpan.FromDays(100);
 //    options.Cookie.IsEssential = true;
 //});
+
 var app = builder.Build();
 
 app.UseStaticFiles(new StaticFileOptions
@@ -231,20 +247,17 @@ app.UseSwagger(options =>
 });
 app.UseSwaggerUI();
 
-app.UseCors(builder => builder
-          .AllowAnyOrigin()
-          .AllowAnyMethod()
-          .AllowAnyHeader()
-         );
+
+app.UseCors(MyAllowSpecificOrigins);
 
 app.UseHttpsRedirection();
 app.UseForwardedHeaders();
 app.UseRouting();
 
 app.UseAuthentication();
-app.UseWebSockets();
 app.UseAuthorization();
 
+app.UseWebSockets();
 app.UseEndpoints(endpoints =>
 {
     endpoints.MapHub<ChatHub>("/chatHub");

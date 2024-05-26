@@ -15,14 +15,14 @@ namespace Mafia.Application.Services
     [Authorize(AuthenticationSchemes = "Bearer")]
     public class ChatHub : Hub
     {
-        public async Task AddToRoleGroup(string userId, string roomNumber, string role)
+        public async Task JoinRoomGroup(string roomNumber)
         {
-            await Groups.AddToGroupAsync(Context.ConnectionId, $"{roomNumber}_{role}");
+            await Groups.AddToGroupAsync(Context.ConnectionId, roomNumber);
         }
 
-        public async Task RemoveFromRoleGroup(string userId, string roomNumber, string role)
+        public async Task LeaveRoomGroup(string roomNumber)
         {
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, $"{roomNumber}_{role}");
+            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomNumber);
         }
 
         public async Task SendUserConnected(string userId, string roomNumber)
@@ -30,22 +30,38 @@ namespace Mafia.Application.Services
             await Clients.Group(roomNumber).SendAsync("UserConnected", userId);
         }
 
+        public async Task StartMafia(string roomNumber, string userId)
+        {
+            await Clients.User(userId).SendAsync("MafiaTurn", "It's your turn, Mafia");
+        }
+
+        public async Task StartDoctor(string roomNumber, string userId)
+        {
+            await Clients.User(userId).SendAsync("DoctorTurn", "It's your turn, Doctor");
+        }
+
+        public async Task StartCommisar(string roomNumber, string userId)
+        {
+            await Clients.User(userId).SendAsync("CommisarTurn", "It's your turn, Commisar");
+        }
+
+        public async Task StartDay(string roomNumber)
+        {
+            await Clients.Group(roomNumber).SendAsync("DayTime", "It's daytime. Discuss and vote.");
+        }
+
+        public async Task StartNight(string roomNumber)
+        {
+            await Clients.Group(roomNumber).SendAsync("NightTime", "It's nighttime. Roles take your actions.");
+        }
 
         public override async Task OnConnectedAsync()
         {
-            var httpContext = Context.GetHttpContext();
-            var roomNumber = httpContext.Request.Query["roomNumber"];
-
-            await Groups.AddToGroupAsync(Context.ConnectionId, roomNumber);
             await base.OnConnectedAsync();
         }
 
         public override async Task OnDisconnectedAsync(Exception exception)
         {
-            var httpContext = Context.GetHttpContext();
-            var roomNumber = httpContext.Request.Query["roomNumber"];
-
-            await Groups.RemoveFromGroupAsync(Context.ConnectionId, roomNumber);
             await base.OnDisconnectedAsync(exception);
         }
     }
