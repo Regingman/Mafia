@@ -217,11 +217,11 @@ builder.Services.AddSignalR();
 
 var app = builder.Build();
 
-app.UseStaticFiles(new StaticFileOptions
-{
-    FileProvider = new PhysicalFileProvider(Path.Combine(GetFolderPath(SpecialFolder.MyDocuments, SpecialFolderOption.DoNotVerify), "Ambfiles/uploads")),
-    RequestPath = "/uploads"
-});
+//app.UseStaticFiles(new StaticFileOptions
+//{
+//    FileProvider = new PhysicalFileProvider(Path.Combine(GetFolderPath(SpecialFolder.MyDocuments, SpecialFolderOption.DoNotVerify), "Ambfiles/uploads")),
+//    RequestPath = "/uploads"
+//});
 
 AppContext.SetSwitch("Npgsql.EnableLegacyTimestampBehavior", true);
 

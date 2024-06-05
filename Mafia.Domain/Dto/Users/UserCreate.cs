@@ -26,4 +26,16 @@ namespace Mafia.Domain.Dto
         public string Pin { get; set; }
 
     }
+    public class UserCreatePost
+    {
+        public string Email { get; set; }
+        [Display(Name = "Пароль")]
+        public string Password { get; set; }
+        [Display(Name = "Роль")]
+        public string IdentityRoleId { get; set; }
+        [Display(Name = "ФИО")]
+        public string FIO { get; set; }
+        [Display(Name = "Телефон")]
+        public string Phone { get; set; }
+    }
 }

@@ -193,6 +193,7 @@ namespace Mafia.Application.Services.Mafia
                     PlayerName = p.PlayerName,
                     IsAlive = p.RoomEnabled,
                     Role = p.RoomRole,
+                    PlayerPhoto = p.PlayerPhoto,
                     RoomNumber = p.Room.RoomNumber
                 }).ToList();
             }
@@ -225,6 +226,7 @@ namespace Mafia.Application.Services.Mafia
                     PlayerId = p.PlayerId,
                     PlayerName = p.PlayerName,
                     IsAlive = p.RoomEnabled,
+                    PlayerPhoto = p.PlayerPhoto,
                 }).ToList();
             }
             else
@@ -439,7 +441,7 @@ namespace Mafia.Application.Services.Mafia
 
         public async Task<int> UserRefresh(string userId, string roomNumber, string roomPassword)
         {
-            var user = await _context.RoomPlayers.FirstOrDefaultAsync(e => e.PlayerId == userId);
+            var user = await _context.RoomPlayers.Include(e=>e.Room).FirstOrDefaultAsync(e => e.PlayerId == userId && e.Room.RoomNumber == roomNumber && e.Room.RoomPassword == roomPassword);
             if (user == null)
             {
                 throw new InvalidOperationException("User not found");

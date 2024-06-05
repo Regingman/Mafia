@@ -21,7 +21,7 @@ namespace Mafia.Application.Services.AccountAndUser
         /// </summary>
         /// <param name="user"></param>
         /// <returns></returns>
-        Task<UserCreate> PostAsync(UserCreate user);
+        Task<UserCreate> PostAsync(UserCreatePost user);
         /// <summary>
         /// Изменение пользователя админом
         /// </summary>

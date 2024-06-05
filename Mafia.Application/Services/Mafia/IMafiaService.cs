@@ -51,6 +51,7 @@ namespace Mafia.Application.Services.Mafia
         public string PlayerUserName { get; set; }
         public string PlayerName { get; set; }
         public string RoomNumber { get; set; }
+        public string PlayerPhoto { get; set; }
         public bool? IsAlive { get; set; }
         public RoomRole? Role { get; set; }
     }

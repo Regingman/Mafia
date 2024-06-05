@@ -92,17 +92,15 @@ namespace Mafia.Application.Services.AccountAndUser
             }
         }
 
-        public async Task<UserCreate> PostAsync(UserCreate user)
+        public async Task<UserCreate> PostAsync(UserCreatePost user)
         {
             ApplicationUser appUser = new ApplicationUser
             {
-                UserName = user.Pin,
+                UserName = user.Email,
                 Email = user.Email,
-                OrganisationId = user.OrganizationId,
                 FIO = user.FIO,
                 Phone = user.Phone,
                 EmailConfirmed = true,
-                Pin = user.Pin
             };
             //_logger.LogInformation("AccountController method: Create Post. Time: " + DateTime.Now.ToString() + ". username: " + user.UserName + ", password: " + user.Password + ", LPU: " + user.LpuId);
             try
@@ -113,7 +111,13 @@ namespace Mafia.Application.Services.AccountAndUser
                     IdentityRole role = _roleManager.FindByIdAsync(user.IdentityRoleId).Result;
                     _userManager.AddToRoleAsync(appUser, role.Name).Wait();
 
-                    return user;
+                    return new UserCreate()
+                    {
+                        Email = user.Email,
+                        Id = appUser.Id,
+                        FIO = user.FIO,
+                        Phone = user.Phone,
+                    };
                 }
                 else
                 {
