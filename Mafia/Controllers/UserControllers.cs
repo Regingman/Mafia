@@ -61,7 +61,7 @@ namespace Mafia.WebApi.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<ApplicationUser>> PostAsync([FromBody] UserCreate user)
+        public async Task<ActionResult<ApplicationUser>> PostAsync([FromBody] UserCreatePost user)
         {
             var records = await _userService.PostAsync(user);
             if (records != null)
