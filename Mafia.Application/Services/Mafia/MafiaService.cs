@@ -53,10 +53,15 @@ namespace Mafia.Application.Services.Mafia
             _context.RoomPlayers.Add(roomP);
             _context.SaveChanges();
             // Подключаем пользователя к группе комнаты
-            await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", room.RoomNumber);
+            //await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", room.RoomNumber);
 
             // Уведомляем всех игроков в комнате о новом участнике
             await _hubContext.Clients.Group(room.RoomNumber).SendAsync("UserJoined", name);
+            foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+            {
+                await _hubContext.Clients.User(temp).SendAsync("UserJoined", $"" +
+                $" user connected {temp}");
+            }
             return room.Id;
         }
 
@@ -456,12 +461,12 @@ namespace Mafia.Application.Services.Mafia
                 throw new InvalidOperationException("User not found");
             }
             // Подключаем пользователя к группе комнаты
-            await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", roomNumber);
+            //await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", roomNumber);
             
             foreach (var temp in GetAllPlayerStatusLive(user.RoomId).Select(e => e.PlayerUserName))
             {
-                await _hubContext.Clients.User(temp).SendAsync("NightTime", $"" +
-                $" It's nighttime. Roles take your actions.");
+                await _hubContext.Clients.User(temp).SendAsync("UserJoined", $"" +
+                $" user connected {user.PlayerName}");
             }
 
             // Уведомляем всех игроков в комнате о новом участнике
