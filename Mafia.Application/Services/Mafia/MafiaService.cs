@@ -1,6 +1,7 @@
 ﻿using AutoMapper;
 using AutoMapper.QueryableExtensions;
 using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
 using Mafia.Application.Mappings;
 using Mafia.Application.Paggination;
 using Mafia.Domain.Data.Adapters;
@@ -290,8 +291,13 @@ namespace Mafia.Application.Services.Mafia
                     room.Status = Status.nigth;
 
 
-                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("NightTime", $"" +
+                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("NightTime", $"" +
                         $" It's nighttime. Roles take your actions.");
+                    }
+                    //await _hubContext.Clients.Group(room.RoomNumber).SendAsync("NightTime", $"" +
+                    //    $" It's nighttime. Roles take your actions.");
 
                     break;
                 case RoomStageUpdateType.NightMafia:
@@ -351,8 +357,11 @@ namespace Mafia.Application.Services.Mafia
                         .Include(e => e.Player)
                         .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia);
                     userD.Player.RoomEnabled = false;
-
-                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
+                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
+                    }
+                    //await _hubContext.Clients.Group(room.RoomNumber).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
                     break;
             }
 
@@ -448,9 +457,15 @@ namespace Mafia.Application.Services.Mafia
             }
             // Подключаем пользователя к группе комнаты
             await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", roomNumber);
+            
+            foreach (var temp in GetAllPlayerStatusLive(user.RoomId).Select(e => e.PlayerUserName))
+            {
+                await _hubContext.Clients.User(temp).SendAsync("NightTime", $"" +
+                $" It's nighttime. Roles take your actions.");
+            }
 
             // Уведомляем всех игроков в комнате о новом участнике
-            await _hubContext.Clients.Group(roomNumber).SendAsync("UserJoined", user.PlayerName);
+            //await _hubContext.Clients.Group(roomNumber).SendAsync("UserJoined", user.PlayerName);
 
             return user.RoomId;
         }
