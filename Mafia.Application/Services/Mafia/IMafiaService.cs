@@ -11,8 +11,8 @@ namespace Mafia.Application.Services.Mafia
 {
     public interface IMafiaService
     {
-        Task<int> UserCreate(string userId, string roomNumber, string roomPassword, string name, int age, Gender gender, string photo);
-        Task<int> UserRefresh(string userId, string roomNumber, string roomPassword);
+        Task<int> UserCreate(string userId, string roomNumber, string name, int age, Gender gender, string photo);
+        Task<int> UserRefresh(string userId, string roomNumber);
         Task<PaginatedList<RoomResponse>> ListRoomAsync(int page, int size);
         RoomResponse CreateRoom(string adminId, int roomMafia, int playerCount);
         void DisablePlayer(string playerId);

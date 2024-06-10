@@ -33,9 +33,9 @@ namespace Mafia.Application.Services.Mafia
         }
 
 
-        public async Task<int> UserCreate(string userId, string roomNumber, string roomPassword, string name, int age, Gender gender, string photo)
+        public async Task<int> UserCreate(string userId, string roomNumber, string name, int age, Gender gender, string photo)
         {
-            var room = await _context.Rooms.FirstOrDefaultAsync(e => e.RoomPassword == roomPassword && e.RoomNumber == roomNumber);
+            var room = await _context.Rooms.FirstOrDefaultAsync(e => e.RoomNumber == roomNumber);
             if (room == null)
             {
                 throw new InvalidOperationException("Room not found");
@@ -295,7 +295,6 @@ namespace Mafia.Application.Services.Mafia
                     currentStage.Nigth = true;
                     room.Status = Status.nigth;
 
-
                     foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                     {
                         await _hubContext.Clients.User(temp).SendAsync("NightTime", $"" +
@@ -344,27 +343,26 @@ namespace Mafia.Application.Services.Mafia
                 case RoomStageUpdateType.StartDay:
                     currentStage.Day = true;
                     room.Status = Status.day;
-                    //if (currentStage != null && IsNightComplete(currentStage))
-                    //{
-                    //    currentStage.Day = true;
-                    //    room.Status = Status.day;
-                    //    await NotifyPlayers(roomId, "Day has started.");
-                    //    // Return statuses of players to all
-                    //}
-                    //else
-                    //{
-                    //    throw new InvalidOperationException("Cannot start the day until the night stages are completed.");
-                    //}
 
                     var userD = _context.RoomStagePlayers
                         .OrderByDescending(e => e.Mafia)
                         .Include(e => e.Room)
                         .Include(e => e.Player)
                         .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia);
-                    userD.Player.RoomEnabled = false;
-                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    if (userD != null)
                     {
-                        await _hubContext.Clients.User(temp).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
+                        userD.Player.RoomEnabled = false;
+                        foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                        {
+                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
+                        }
+                    }
+                    else
+                    {
+                        foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                        {
+                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"It's DayTime. Roles take your actions.");
+                        }
                     }
                     //await _hubContext.Clients.Group(room.RoomNumber).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
                     break;
@@ -453,9 +451,9 @@ namespace Mafia.Application.Services.Mafia
             return result;
         }
 
-        public async Task<int> UserRefresh(string userId, string roomNumber, string roomPassword)
+        public async Task<int> UserRefresh(string userId, string roomNumber)
         {
-            var user = await _context.RoomPlayers.Include(e=>e.Room).FirstOrDefaultAsync(e => e.PlayerId == userId && e.Room.RoomNumber == roomNumber && e.Room.RoomPassword == roomPassword);
+            var user = await _context.RoomPlayers.Include(e=>e.Room).FirstOrDefaultAsync(e => e.PlayerId == userId && e.Room.RoomNumber == roomNumber);
             if (user == null)
             {
                 throw new InvalidOperationException("User not found");
