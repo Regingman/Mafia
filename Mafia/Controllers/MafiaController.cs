@@ -69,7 +69,7 @@ namespace Mafia.WebApi.Controllers
         [HttpPost("UserCreate")]
         public async Task<ActionResult<int>> UserCreate([FromBody] UserCreateRequest request)
         {
-            var userId = await _mafiaService.UserCreate(request.UserId, request.RoomNumber, request.RoomPassword, request.Name, request.Age, request.Gender, request.Photo);
+            var userId = await _mafiaService.UserCreate(request.UserId, request.RoomNumber, request.Name, request.Age, request.Gender, request.Photo);
 
             return Ok(userId);
         }
@@ -83,7 +83,7 @@ namespace Mafia.WebApi.Controllers
         [HttpPost("RefreshConnection")]
         public async Task<ActionResult<int>> RefreshConnection([FromBody] UserRefreshRequest request)
         {
-            var userId = await _mafiaService.UserRefresh(request.UserId, request.RoomNumber, request.RoomPassword);
+            var userId = await _mafiaService.UserRefresh(request.UserId, request.RoomNumber);
 
             return Ok(userId);
         }
@@ -234,7 +234,6 @@ namespace Mafia.WebApi.Controllers
     {
         public string UserId { get; set; }
         public string RoomNumber { get; set; }
-        public string RoomPassword { get; set; }
         public string Name { get; set; }
         public int Age { get; set; }
         public Gender Gender { get; set; }
@@ -246,7 +245,6 @@ namespace Mafia.WebApi.Controllers
     {
         public string UserId { get; set; }
         public string RoomNumber { get; set; }
-        public string RoomPassword { get; set; }
     }
 
     public class CreateRoomRequest
