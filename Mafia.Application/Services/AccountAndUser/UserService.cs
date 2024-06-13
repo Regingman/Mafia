@@ -125,8 +125,9 @@ namespace Mafia.Application.Services.AccountAndUser
                     //return JsonData("С таким ПИН уже существует пользователь", 450);
                 }
             }
-            catch 
+            catch (Exception ex)
             {
+                Console.WriteLine(ex);
                 return null;
                 //return BadRequest(e.Message);
             }
