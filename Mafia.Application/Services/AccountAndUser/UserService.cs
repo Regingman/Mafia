@@ -119,6 +119,7 @@ namespace Mafia.Application.Services.AccountAndUser
                         FIO = user.FIO,
                         Phone = user.Phone,
                         Password= user.Password,
+                        IdentityRoleId = user.IdentityRoleId
                     };
                 }
                 else
