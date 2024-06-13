@@ -92,8 +92,8 @@ builder.Services.Configure<IdentityOptions>(options =>
     options.SignIn.RequireConfirmedEmail = false;
 
     // Default User settings.
-    options.User.AllowedUserNameCharacters =
-            "0123456789";
+    //options.User.AllowedUserNameCharacters =
+    //        "0123456789";
     options.User.RequireUniqueEmail = false;
 });
 builder.Services.AddControllers();
