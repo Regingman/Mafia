@@ -111,6 +111,7 @@ namespace Mafia.Application.Services.AccountAndUser
                     IdentityRole role = _roleManager.FindByIdAsync(user.IdentityRoleId).Result;
                     _userManager.AddToRoleAsync(appUser, role.Name).Wait();
 
+                    Console.WriteLine("user create sucess");
                     return new UserCreate()
                     {
                         Email = user.Email,
