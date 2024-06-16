@@ -11,9 +11,6 @@ namespace Mafia.Domain.Dto
     {
         public string Id { get; set; }
         public string Email { get; set; }
-        [Display(Name = "ЛПУ")]
-        [Required(ErrorMessage = "ЛПУ обязательно!")]
-        public int OrganizationId { get; set; }
         [Display(Name = "Пароль")]
         public string Password { get; set; }
         [Display(Name = "Роль")]
@@ -22,8 +19,6 @@ namespace Mafia.Domain.Dto
         public string FIO { get; set; }
         [Display(Name = "Телефон")]
         public string Phone { get; set; }
-        [Display(Name = "ПИН")]
-        public string Pin { get; set; }
 
     }
     public class UserCreatePost

@@ -149,13 +149,10 @@ namespace Mafia.Application.Services.AccountAndUser
                     return null;
                 }
 
-                appUser.UserName = user.Pin;
                 appUser.Email = user.Email;
-                appUser.OrganisationId = user.OrganizationId;
                 appUser.FIO = user.FIO;
                 appUser.Phone = user.Phone;
                 appUser.EmailConfirmed = true;
-                appUser.Pin = user.Pin;
                 if (user.Password.Length > 0)
                 {
                     await _userManager.RemovePasswordAsync(appUser);
@@ -200,7 +197,6 @@ namespace Mafia.Application.Services.AccountAndUser
                 UserCreate userCreate = new UserCreate();
                 userCreate.FIO = user.FIO;
                 userCreate.Email = user.UserName;
-                userCreate.OrganizationId = user.OrganisationId.Value;
                 userCreate.Phone = user.Phone;
                 return userCreate;
             }
