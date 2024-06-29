@@ -359,7 +359,7 @@ namespace Mafia.Application.Services.Mafia
                         userD.Player.RoomEnabled = false;
                         foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                         {
-                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
+                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"{userD.Player.Player.Id} Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
                         }
                     }
                     else
