@@ -141,7 +141,10 @@ namespace Mafia.Application.Services.Mafia
                 // Add one of each special role
                 roles.Add(RoomRole.Commisar);
                 roles.Add(RoomRole.Doctor);
-                roles.Add(RoomRole.Putana);
+                if (room.Players.Count > 10)
+                {
+                    roles.Add(RoomRole.Putana);
+                }
 
                 // Fill the remaining roles with civilians
                 while (roles.Count < room.Players.Count)
@@ -157,7 +160,7 @@ namespace Mafia.Application.Services.Mafia
                     roles.RemoveAt(index);
                 }
 
-                room.Status = Status.day;
+                room.Status = Status.winner_not;
                 room.CurrentStageNumber = 1;
 
                 var stage = new RoomStage
@@ -200,7 +203,8 @@ namespace Mafia.Application.Services.Mafia
                     IsAlive = p.RoomEnabled,
                     Role = p.RoomRole,
                     PlayerPhoto = p.PlayerPhoto,
-                    RoomNumber = p.Room.RoomNumber
+                    RoomNumber = p.Room.RoomNumber,
+                    RoomEnabled = p.RoomEnabled
                 }).ToList();
             }
             else
@@ -233,6 +237,7 @@ namespace Mafia.Application.Services.Mafia
                     PlayerName = p.PlayerName,
                     IsAlive = p.RoomEnabled,
                     PlayerPhoto = p.PlayerPhoto,
+                    RoomEnabled = p.RoomEnabled,
                 }).ToList();
             }
             else
@@ -453,14 +458,14 @@ namespace Mafia.Application.Services.Mafia
 
         public async Task<int> UserRefresh(string userId, string roomNumber)
         {
-            var user = await _context.RoomPlayers.Include(e=>e.Room).FirstOrDefaultAsync(e => e.PlayerId == userId && e.Room.RoomNumber == roomNumber);
+            var user = await _context.RoomPlayers.Include(e => e.Room).FirstOrDefaultAsync(e => e.PlayerId == userId && e.Room.RoomNumber == roomNumber);
             if (user == null)
             {
                 throw new InvalidOperationException("User not found");
             }
             // Подключаем пользователя к группе комнаты
             //await _hubContext.Clients.User(userId).SendAsync("JoinRoomGroup", roomNumber);
-            
+
             foreach (var temp in GetAllPlayerStatusLive(user.RoomId).Select(e => e.PlayerUserName))
             {
                 await _hubContext.Clients.User(temp).SendAsync("UserJoined", $"" +

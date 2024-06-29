@@ -54,6 +54,7 @@ namespace Mafia.Application.Services.Mafia
         public string PlayerPhoto { get; set; }
         public bool? IsAlive { get; set; }
         public RoomRole? Role { get; set; }
+        public bool RoomEnabled { get; set; } = true;
     }
 
     public class GameStatus
@@ -62,5 +63,6 @@ namespace Mafia.Application.Services.Mafia
         public string PlayerName { get; set; }
         public bool MafiaWin { get; set; }
         public bool CivilianWin { get; set; }
+        public bool RoomEnabled { get; set; } = true;
     }
 }
