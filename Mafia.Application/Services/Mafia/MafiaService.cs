@@ -293,7 +293,7 @@ namespace Mafia.Application.Services.Mafia
                     throw new InvalidOperationException("Cannot start a new night until the previous night stages are completed.");
                 }
             }
-
+            Console.WriteLine($"{stageUpdateType} stage, room: {room.Id}");
             switch (stageUpdateType)
             {
                 case RoomStageUpdateType.StartNight:
