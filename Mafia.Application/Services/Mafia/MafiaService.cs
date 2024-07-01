@@ -257,16 +257,16 @@ namespace Mafia.Application.Services.Mafia
             var currentStage = room.Stages.OrderByDescending(e => e.Stage).FirstOrDefault();
 
             //Функция для проверки завершения всех этапов ночи
-            bool IsNightComplete(RoomStage stage)
-            {
-                return stage.Mafia && stage.Doctor && stage.Putana && stage.Commisar_whore;
-            }
+            //bool IsNightComplete(RoomStage stage)
+            //{
+            //    return stage.Mafia && stage.Doctor && stage.Putana && stage.Commisar_whore;
+            //}
 
             // Если начинается ночь, и все предыдущие ночные этапы завершены, создаем новую стадию
             if (stageUpdateType == RoomStageUpdateType.StartNight)
             {
-                if (currentStage != null && IsNightComplete(currentStage))
-                {
+                //if (currentStage != null && IsNightComplete(currentStage))
+                //{
                     var newStage = new RoomStage
                     {
                         Stage = currentStage.Stage + 1
@@ -287,11 +287,11 @@ namespace Mafia.Application.Services.Mafia
                         _context.RoomStagePlayers.Add(roomStage);
                         _context.SaveChanges();
                     }
-                }
-                else if (currentStage == null || !IsNightComplete(currentStage))
-                {
-                    throw new InvalidOperationException("Cannot start a new night until the previous night stages are completed.");
-                }
+                //}
+                //else if (currentStage == null || !IsNightComplete(currentStage))
+                //{
+                //    throw new InvalidOperationException("Cannot start a new night until the previous night stages are completed.");
+                //}
             }
             Console.WriteLine($"{stageUpdateType} stage, room: {room.Id}");
             switch (stageUpdateType)
