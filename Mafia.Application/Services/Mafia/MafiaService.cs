@@ -129,7 +129,7 @@ namespace Mafia.Application.Services.Mafia
         public void StartGame(int roomId)
         {
             var room = _context.Rooms.Include(r => r.Players).Include(e => e.Stages).FirstOrDefault(r => r.Id == roomId);
-            if (room != null && room.Players.Count == room.PlayerCount && room.Stages.Count == 0)
+            if (room != null /*&& room.Players.Count == room.PlayerCount && room.Stages.Count == 0*/)
             {
                 var roles = new List<RoomRole>();
                 // Add the specified number of mafia roles
