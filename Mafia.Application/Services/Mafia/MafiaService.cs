@@ -311,7 +311,7 @@ namespace Mafia.Application.Services.Mafia
                     break;
                 case RoomStageUpdateType.NightMafia:
                     currentStage.Mafia = true;
-                    var listM = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Mafia).Select(e => e.PlayerUserName);
+                    var listM = GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName);
                     foreach (var temp in listM)
                     {
                         await _hubContext.Clients.User(temp).SendAsync("MafiaTurn", "It's your turn, Mafia");
@@ -320,7 +320,7 @@ namespace Mafia.Application.Services.Mafia
                     break;
                 case RoomStageUpdateType.NightDoctor:
                     currentStage.Doctor = true;
-                    var listD = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Doctor).Select(e => e.PlayerUserName);
+                    var listD = GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName);
                     foreach (var temp in listD)
                     {
                         await _hubContext.Clients.User(temp).SendAsync("DoctorTurn", "It's your turn, Doctor");
@@ -329,7 +329,7 @@ namespace Mafia.Application.Services.Mafia
                     break;
                 case RoomStageUpdateType.NightWhore:
                     currentStage.Putana = true;
-                    var listP = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Putana).Select(e => e.PlayerUserName);
+                    var listP = GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName);
                     foreach (var temp in listP)
                     {
                         await _hubContext.Clients.User(temp).SendAsync("PutanaTurn", "It's your turn, Putana");
@@ -338,7 +338,7 @@ namespace Mafia.Application.Services.Mafia
                     break;
                 case RoomStageUpdateType.CommisarWhore:
                     currentStage.Commisar_whore = true;
-                    var listC = GetAllPlayerStatusLive(room.Id).Where(e => e.Role == RoomRole.Commisar).Select(e => e.PlayerUserName);
+                    var listC = GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName);
                     foreach (var temp in listC)
                     {
                         await _hubContext.Clients.User(temp).SendAsync("CommisarTurn", "It's your turn, Commisar");
@@ -359,7 +359,11 @@ namespace Mafia.Application.Services.Mafia
                         userD.Player.RoomEnabled = false;
                         foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                         {
-                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"{userD.Player.Player.Id} Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
+                            await _hubContext.Clients.User(temp).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
+                        }
+                        foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                        {
+                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"It's DayTime. Roles take your actions.");
                         }
                     }
                     else
@@ -450,7 +454,7 @@ namespace Mafia.Application.Services.Mafia
             else
             {
                 room.Status = Status.winner_not;
-                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Ночью не выжил: {user.Player.PlayerName}.");
+                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("UserKill", $"Ночью не выжил: {user.Player.PlayerName}.");
             }
             _context.SaveChanges();
             return result;

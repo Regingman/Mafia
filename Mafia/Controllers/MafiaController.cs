@@ -112,6 +112,86 @@ namespace Mafia.WebApi.Controllers
         }
 
         /// <summary>
+        /// Мафия предлагает убить этого
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <param name="targetUserName"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/MafiaProposeKill
+        [HttpPost("MafiaProposeKill")]
+        public async Task<IActionResult> MafiaProposeKillAsync([FromQuery] int roomId, [FromQuery] string targetUserName)
+        {
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("MafiaProposeKill", targetUserName);
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Мафия подтвердил выбор
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <param name="targetUserName"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/MafiaConfirmKill
+        [HttpPost("MafiaConfirmKill")]
+        public async Task<IActionResult> MafiaConfirmKillAsync([FromQuery] int roomId, [FromQuery] string targetUserName)
+        {
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("MafiaConfirmKill", targetUserName);
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Дневное голосование, игрок предлагает убить
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <param name="targetUserName"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/DayVoteProposeKill
+        [HttpPost("DayVoteProposeKill")]
+        public async Task<IActionResult> DayVoteProposeKillAsync([FromQuery] int roomId, [FromQuery] string targetUserName)
+        {
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DayVoteProposeKill", targetUserName);
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
+        /// Дневное голосование, игрок подтверждает свой выбор
+        /// </summary>
+        /// <param name="roomId"></param>
+        /// <param name="targetUserName"></param>
+        /// <returns></returns>
+        // POST: api/Mafia/DayVoteConfirmKill
+        [HttpPost("DayVoteConfirmKill")]
+        public async Task<IActionResult> DayVoteConfirmKillAsync([FromQuery] int roomId, [FromQuery] string targetUserName)
+        {
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DayVoteConfirmKill", targetUserName);
+            }
+
+            return Ok();
+        }
+
+        /// <summary>
         /// Админ получает список всех живых игроков
         /// </summary>
         /// <param name="roomId"></param>
@@ -157,9 +237,14 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/PlayerVote
         [HttpPost("MafiaVote")]
-        public IActionResult PlayerVote([FromQuery] int roomId, [FromQuery] string playerId)
+        public async Task<IActionResult> PlayerVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string targetUserName)
         {
-            _mafiaService.MafiaVote(roomId, playerId);
+            await _mafiaService.MafiaVote(roomId, playerId); var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("MafiaConfirmKill", targetUserName);
+            }
             return Ok();
         }
 
@@ -170,9 +255,14 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/PlayerVote
         [HttpPost("CommisarVote")]
-        public async Task<IActionResult> CommisarVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        public async Task<IActionResult> CommisarVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string userName)
         {
-            await _mafiaService.CommisarVote(roomId, playerId);
+            await _mafiaService.CommisarVote(roomId, playerId); var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("CommisarVotes", userName);
+            }
             return Ok();
         }
 
@@ -183,9 +273,16 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/PlayerVote
         [HttpPost("PutanaVote")]
-        public async Task<IActionResult> PutanaVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        public async Task<IActionResult> PutanaVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string userName)
         {
-            await _mafiaService.PutanaVote(roomId, playerId);
+            await _mafiaService.PutanaVote(roomId, playerId); 
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("NightSleep", userName);
+            }
+
             return Ok();
         }
 
@@ -196,9 +293,15 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/PlayerVote
         [HttpPost("DoctorVote")]
-        public async Task<IActionResult> DoctorVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        public async Task<IActionResult> DoctorVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string userName)
         {
             await _mafiaService.DoctorVote(roomId, playerId);
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DoctorVotes", userName);
+            }
             return Ok();
         }
 
@@ -209,9 +312,15 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/PlayerVote
         [HttpPost("PlayerVote")]
-        public async Task<IActionResult> PlayerVoteAsync([FromQuery] int roomId, [FromQuery] string playerId)
+        public async Task<IActionResult> PlayerVote([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string targetUserName)
         {
             _mafiaService.PlayerVote(roomId, playerId);
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+
+            foreach (var playerStatus in playerStatuses)
+            {
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVotes", targetUserName);
+            }
             return Ok();
         }
 
