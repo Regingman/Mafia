@@ -41,7 +41,7 @@ namespace Mafia.WebApi.Controllers
         /// <param name="size"></param>
         /// <returns></returns>
         [HttpGet]
-        public async Task<ActionResult<IEnumerable<ApplicationUserRoles>>> GetAsync([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<IEnumerable<UserCreate>>> GetAsync([FromQuery] int page, [FromQuery] int size)
         {
             var records = await _userService.GetAsync(page, size);
             if (records != null)
@@ -61,14 +61,14 @@ namespace Mafia.WebApi.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<ApplicationUser>> PostAsync([FromBody] UserCreatePost user)
+        public async Task<ActionResult<UserCreate>> PostAsync([FromBody] UserCreatePost user)
         {
             var records = await _userService.PostAsync(user);
             if (records != null)
             {
                 if (records.Password != null)
                 {
-                    return Ok(records);
+                    return Ok();
                 }
                 else
                 {
@@ -88,12 +88,12 @@ namespace Mafia.WebApi.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<ApplicationUser>> PutAsync(String id, [FromBody] UserCreate user)
+        public async Task<ActionResult<UserCreate>> PutAsync(String id, [FromBody] UserCreate user)
         {
             var records = await _userService.PutAsync(id, user);
             if (records != null)
             {
-                return Ok(records);
+                return Ok();
             }
             else
             {
@@ -107,7 +107,7 @@ namespace Mafia.WebApi.Controllers
         /// <param name="id"></param>
         /// <returns></returns>
         [HttpGet("{id}")]
-        public async Task<ActionResult<ApplicationUser>> GetAsync(string id)
+        public async Task<ActionResult<UserCreate>> GetAsync(string id)
         {
             var records = await _userService.GetAsync(id);
             if (records != null)

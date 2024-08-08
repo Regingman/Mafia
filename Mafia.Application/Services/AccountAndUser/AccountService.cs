@@ -184,7 +184,6 @@ namespace Mafia.Application.Services.AccountAndUser
             var response = new AuthorizationResponse();
             response.Roles = string.Join(",", roles);
             //get privilege
-            response.Privileges = privileges;
             _logger.LogInformation("Returning token");
             return response;
         }

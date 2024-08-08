@@ -44,7 +44,7 @@ namespace Mafia.WebApi.Controllers
         public ActionResult<Room> CreateRoom([FromBody] CreateRoomRequest request)
         {
             var room = _mafiaService.CreateRoom(request.AdminId, request.RoomMafia, request.PlayerCount);
-            return Ok(room);
+            return Ok();
         }
 
         // PUT: api/Mafia/DisablePlayer
@@ -71,7 +71,7 @@ namespace Mafia.WebApi.Controllers
         {
             var userId = await _mafiaService.UserCreate(request.UserId, request.RoomNumber, request.Name, request.Age, request.Gender, request.Photo);
 
-            return Ok(userId);
+            return Ok();
         }
 
         // POST: api/Mafia/UserCreate
@@ -85,7 +85,7 @@ namespace Mafia.WebApi.Controllers
         {
             var userId = await _mafiaService.UserRefresh(request.UserId, request.RoomNumber);
 
-            return Ok(userId);
+            return Ok();
         }
 
 

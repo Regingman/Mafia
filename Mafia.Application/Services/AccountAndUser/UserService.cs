@@ -35,7 +35,7 @@ namespace Mafia.Application.Services.AccountAndUser
             _currentUserService = currentUserService;
         }
 
-        public async Task<Pagination<ApplicationUserRoles>> GetAsync(int page, int size)
+        public async Task<Pagination<UserCreate>> GetAsync(int page, int size)
         {
             //var query = _userManager.Users.ToList();
             var query = await _context.ApplicationUsers
@@ -44,38 +44,21 @@ namespace Mafia.Application.Services.AccountAndUser
             try
             {
                 var list = await PaginationService.GetPagination(query, page, size);
-                var applicationUserRoles = new List<ApplicationUserRoles>();
+                var applicationUserRoles = new List<UserCreate>();
                 foreach (var temp in list.Result)
                 {
                     var roles = await _userManager.GetRolesAsync(temp);
                     var role = await _roleManager.FindByNameAsync(roles.First());
 
-                    applicationUserRoles.Add(new ApplicationUserRoles()
+                    applicationUserRoles.Add(new UserCreate()
                     {
                         Email = temp.Email,
-                        EmailConfirmed = temp.EmailConfirmed,
-                        LockoutEnabled = temp.LockoutEnabled,
-                        LockoutEnd = temp.LockoutEnd,
-                        NormalizedEmail = temp.NormalizedEmail,
-                        TwoFactorEnabled = temp.TwoFactorEnabled,
-                        AccessFailedCount = temp.AccessFailedCount,
-                        ConcurrencyStamp = temp.ConcurrencyStamp,
                         FIO = temp.FIO,
                         Id = temp.Id,
-                        NormalizedUserName = temp.NormalizedUserName,
-                        PasswordHash = temp.PasswordHash,
-                        Block = temp.LockoutEnd == null ? false : true,
-                        Phone = temp.Phone,
-                        PhoneNumber = temp.Phone,
-                        PhoneNumberConfirmed = temp.PhoneNumberConfirmed,
-                        Pin = temp.Pin,
-                        SecurityStamp = temp.SecurityStamp,
-                        UserName = temp.UserName,
-                        IdentityRoles = roles.First(),
                         IdentityRoleId = role.Id
                     });
                 }
-                var pagination = new Pagination<ApplicationUserRoles>()
+                var pagination = new Pagination<UserCreate>()
                 {
                     CurrentPage = list.CurrentPage,
                     PageSize = size,

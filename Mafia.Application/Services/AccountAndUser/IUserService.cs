@@ -15,7 +15,7 @@ namespace Mafia.Application.Services.AccountAndUser
         /// <param name="page"></param>
         /// <param name="size"></param>
         /// <returns></returns>
-        Task<Pagination<ApplicationUserRoles>> GetAsync(int page, int size);
+        Task<Pagination<UserCreate>> GetAsync(int page, int size);
         /// <summary>
         /// Создание пользователя админом
         /// </summary>
