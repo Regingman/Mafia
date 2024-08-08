@@ -144,7 +144,7 @@ namespace Mafia.Application.Services.AccountAndUser
             privileges: privileges,
             currentUser: u,
             jwtToken: encodedJwty,
-            admin: false
+            admin: roles.Contains("ADMIN")
         );
             Result.Success();
             _logger.LogInformation("Returning token");
