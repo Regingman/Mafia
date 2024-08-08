@@ -45,7 +45,7 @@ namespace Mafia.WebApi.Controllers
         /// </summary>
         [HttpPost]
         [Route("Login")]
-        public async Task<IActionResult> Token([FromBody] Authorize authorize)
+        public async Task<ActionResult<AuthorizationResponse>> Token([FromBody] Authorize authorize)
         {
             _logger.LogInformation($"login: {authorize.Login}");
             var records = await _accountService.Token(authorize);

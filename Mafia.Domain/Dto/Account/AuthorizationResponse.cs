@@ -8,6 +8,7 @@ namespace Mafia.Domain.Dto.Account
         public string Name { get; set; }
         public string Login { get; set; }
         public string Fio { get; set; }
+        public string UserId { get; set; }
         public string Roles { get; set; }
         public bool IsAdmin { get; set; }
         public string JwtToken { get; set; }
@@ -22,6 +23,7 @@ namespace Mafia.Domain.Dto.Account
             this.Roles = roles;
             this.JwtToken = jwtToken;
             this.IsAdmin = admin;
+            this.UserId = currentUser.Id;
         }
         public AuthorizationResponse() { }
     }
