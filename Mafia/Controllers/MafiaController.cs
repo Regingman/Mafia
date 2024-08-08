@@ -28,7 +28,7 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // GET: api/Mafia/ListRoom
         [HttpGet("ListRoom")]
-        public async Task<ActionResult<List<Room>>> ListRoom([FromQuery] int page, [FromQuery] int size)
+        public async Task<ActionResult<List<RoomResponse>>> ListRoom([FromQuery] int page, [FromQuery] int size)
         {
             var rooms = await _mafiaService.ListRoomAsync(page, size);
             return Ok(rooms);
@@ -41,7 +41,7 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/CreateRoom
         [HttpPost("CreateRoom")]
-        public ActionResult<Room> CreateRoom([FromBody] CreateRoomRequest request)
+        public IActionResult CreateRoom([FromBody] CreateRoomRequest request)
         {
             var room = _mafiaService.CreateRoom(request.AdminId, request.RoomMafia, request.PlayerCount);
             return Ok();
@@ -67,7 +67,7 @@ namespace Mafia.WebApi.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("UserCreate")]
-        public async Task<ActionResult<int>> UserCreate([FromBody] UserCreateRequest request)
+        public async Task<IActionResult> UserCreate([FromBody] UserCreateRequest request)
         {
             var userId = await _mafiaService.UserCreate(request.UserId, request.RoomNumber, request.Name, request.Age, request.Gender, request.Photo);
 
@@ -81,7 +81,7 @@ namespace Mafia.WebApi.Controllers
         /// <param name="request"></param>
         /// <returns></returns>
         [HttpPost("RefreshConnection")]
-        public async Task<ActionResult<int>> RefreshConnection([FromBody] UserRefreshRequest request)
+        public async Task<IActionResult> RefreshConnection([FromBody] UserRefreshRequest request)
         {
             var userId = await _mafiaService.UserRefresh(request.UserId, request.RoomNumber);
 

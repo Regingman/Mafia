@@ -61,7 +61,7 @@ namespace Mafia.WebApi.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPost]
-        public async Task<ActionResult<UserCreate>> PostAsync([FromBody] UserCreatePost user)
+        public async Task<IActionResult> PostAsync([FromBody] UserCreatePost user)
         {
             var records = await _userService.PostAsync(user);
             if (records != null)
@@ -88,7 +88,7 @@ namespace Mafia.WebApi.Controllers
         /// <param name="user"></param>
         /// <returns></returns>
         [HttpPut("{id}")]
-        public async Task<ActionResult<UserCreate>> PutAsync(String id, [FromBody] UserCreate user)
+        public async Task<IActionResult> PutAsync(String id, [FromBody] UserCreate user)
         {
             var records = await _userService.PutAsync(id, user);
             if (records != null)
