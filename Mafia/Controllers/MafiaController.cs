@@ -44,7 +44,7 @@ namespace Mafia.WebApi.Controllers
         public IActionResult CreateRoom([FromBody] CreateRoomRequest request)
         {
             var room = _mafiaService.CreateRoom(request.AdminId, request.RoomMafia, request.PlayerCount);
-            return Ok();
+            return Ok(room.RoomNumber);
         }
 
         // PUT: api/Mafia/DisablePlayer
