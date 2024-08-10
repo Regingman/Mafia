@@ -71,7 +71,7 @@ namespace Mafia.WebApi.Controllers
         {
             var userId = await _mafiaService.UserCreate(request.UserId, request.RoomNumber, request.Name, request.Age, request.Gender, request.Photo);
 
-            return Ok();
+            return Ok(userId);
         }
 
         // POST: api/Mafia/UserCreate
@@ -85,7 +85,7 @@ namespace Mafia.WebApi.Controllers
         {
             var userId = await _mafiaService.UserRefresh(request.UserId, request.RoomNumber);
 
-            return Ok();
+            return Ok(userId);
         }
 
 
