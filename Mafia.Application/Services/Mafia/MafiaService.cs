@@ -4,6 +4,7 @@ using DocumentFormat.OpenXml.Spreadsheet;
 using DocumentFormat.OpenXml.Wordprocessing;
 using Mafia.Application.Mappings;
 using Mafia.Application.Paggination;
+using Mafia.Application.Services.Interfaces;
 using Mafia.Domain.Data.Adapters;
 using Mafia.Domain.Entities;
 using Mafia.Domain.Entities.Game;
@@ -22,14 +23,16 @@ namespace Mafia.Application.Services.Mafia
     {
         private readonly MafiaDbContext _context;
         private readonly IMapper _mapper;
+        private readonly ICurrentUserService _currentUserService;
         private readonly IHubContext<ChatHub> _hubContext;
 
         public MafiaService(MafiaDbContext context, IHubContext<ChatHub> hubContext,
-        IMapper mapper)
+        IMapper mapper, ICurrentUserService currentUserService)
         {
             _context = context;
             _hubContext = hubContext;
             _mapper = mapper;
+            _currentUserService = currentUserService;
         }
 
 
@@ -192,11 +195,13 @@ namespace Mafia.Application.Services.Mafia
 
         public List<PlayerStatus> GetAllPlayerStatusLive(int roomId)
         {
+            var user = _currentUserService.ApplicationUserId;
             var room = _context.Rooms.Include(r => r.Players).ThenInclude(e => e.Player).FirstOrDefault(r => r.Id == roomId);
             if (room != null)
             {
                 return room.Players.Select(p => new PlayerStatus
                 {
+                    IsYou = p.PlayerId == user,
                     PlayerId = p.PlayerId,
                     PlayerUserName = p.Player.UserName,
                     PlayerName = p.PlayerName,
@@ -267,26 +272,26 @@ namespace Mafia.Application.Services.Mafia
             {
                 //if (currentStage != null && IsNightComplete(currentStage))
                 //{
-                    var newStage = new RoomStage
-                    {
-                        Stage = currentStage.Stage + 1
-                        // Инициализируем другие поля, если нужно
-                    };
-                    room.Stages.Add(newStage);
-                    currentStage = newStage;
-                    _context.SaveChanges();
+                var newStage = new RoomStage
+                {
+                    Stage = currentStage.Stage + 1
+                    // Инициализируем другие поля, если нужно
+                };
+                room.Stages.Add(newStage);
+                currentStage = newStage;
+                _context.SaveChanges();
 
-                    var players = GetAllPlayerStatusLiveCheck(room.Id);
-                    foreach (var temp in players)
+                var players = GetAllPlayerStatusLiveCheck(room.Id);
+                foreach (var temp in players)
+                {
+                    var roomStage = new RoomStagePlayer()
                     {
-                        var roomStage = new RoomStagePlayer()
-                        {
-                            PlayerId = temp,
-                            RoomId = currentStage.Id,
-                        };
-                        _context.RoomStagePlayers.Add(roomStage);
-                        _context.SaveChanges();
-                    }
+                        PlayerId = temp,
+                        RoomId = currentStage.Id,
+                    };
+                    _context.RoomStagePlayers.Add(roomStage);
+                    _context.SaveChanges();
+                }
                 //}
                 //else if (currentStage == null || !IsNightComplete(currentStage))
                 //{

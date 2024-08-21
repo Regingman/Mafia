@@ -33,6 +33,7 @@ using Serilog;
 using Microsoft.Extensions.FileProviders;
 using Mafia.Application.Services.Mafia;
 using Microsoft.AspNetCore.SignalR;
+using Mafia.Application.Services.Interfaces;
 
 var builder = WebApplication.CreateBuilder(args);
 var MyAllowSpecificOrigins = "_myAllowSpecificOrigins";
@@ -183,6 +184,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
      .AddDefaultTokenProviders()
      .AddUserManager<UserManager<ApplicationUser>>();
 
+builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<IJobFactory, JobFactory>();
 builder.Services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
 builder.Services.AddHostedService<QuartzHostedService>();
