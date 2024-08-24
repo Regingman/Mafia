@@ -33,6 +33,7 @@ namespace Mafia.Domain.Entities.Game
         Putana,
         Commisar,
         Doctor,
-        Mafia
+        Mafia,
+        Default
     }
 }
