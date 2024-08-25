@@ -234,11 +234,14 @@ namespace Mafia.Application.Services.Mafia
 
         public List<PlayerStatus> GetAllPlayerStatusLiveUser(int roomId)
         {
+            var user = _currentUserService.ApplicationUser.Id;
+            Console.WriteLine(_currentUserService.ApplicationUser.Id);
             var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
             if (room != null)
             {
                 return room.Players.Select(p => new PlayerStatus
                 {
+                    IsYou = p.PlayerId.Contains(user) ? true : false,
                     PlayerId = p.PlayerId,
                     PlayerName = p.PlayerName,
                     IsAlive = p.RoomEnabled,
