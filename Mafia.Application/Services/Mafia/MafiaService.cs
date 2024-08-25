@@ -202,7 +202,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 return room.Players.Select(p => new PlayerStatus
                 {
-                    IsYou = p.PlayerId == user ? true : false,
+                    IsYou = p.PlayerId == _currentUserService.ApplicationUser.Id ? true : false,
                     PlayerId = p.PlayerId,
                     PlayerUserName = p.Player.UserName,
                     PlayerName = p.PlayerName,
