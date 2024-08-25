@@ -197,6 +197,7 @@ namespace Mafia.Application.Services.Mafia
         {
             var user = _currentUserService.ApplicationUserId;
             Console.WriteLine(user);
+            Console.WriteLine(_currentUserService.ApplicationUser.Id);
             var room = _context.Rooms.Include(r => r.Players).ThenInclude(e => e.Player).FirstOrDefault(r => r.Id == roomId);
             if (room != null)
             {
