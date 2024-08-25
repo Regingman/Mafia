@@ -196,14 +196,13 @@ namespace Mafia.Application.Services.Mafia
         public List<PlayerStatus> GetAllPlayerStatusLive(int roomId)
         {
             var user = _currentUserService.ApplicationUserId;
-            Console.WriteLine(user);
             Console.WriteLine(_currentUserService.ApplicationUser.Id);
             var room = _context.Rooms.Include(r => r.Players).ThenInclude(e => e.Player).FirstOrDefault(r => r.Id == roomId);
             if (room != null)
             {
                 return room.Players.Select(p => new PlayerStatus
                 {
-                    IsYou = p.PlayerId == _currentUserService.ApplicationUser.Id ? true : false,
+                    IsYou = p.PlayerId.Contains(_currentUserService.ApplicationUser.Id) ? true : false,
                     PlayerId = p.PlayerId,
                     PlayerUserName = p.Player.UserName,
                     PlayerName = p.PlayerName,
