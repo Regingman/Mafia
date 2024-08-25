@@ -184,7 +184,7 @@ builder.Services.AddIdentity<ApplicationUser, IdentityRole>()
      .AddDefaultTokenProviders()
      .AddUserManager<UserManager<ApplicationUser>>();
 
-builder.Services.AddSingleton<ICurrentUserService, CurrentUserService>();
+builder.Services.AddScoped<ICurrentUserService, CurrentUserService>();
 builder.Services.AddSingleton<IJobFactory, JobFactory>();
 builder.Services.AddSingleton<ISchedulerFactory, StdSchedulerFactory>();
 builder.Services.AddHostedService<QuartzHostedService>();

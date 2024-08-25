@@ -206,7 +206,7 @@ namespace Mafia.Application.Services.Mafia
                     PlayerUserName = p.Player.UserName,
                     PlayerName = p.PlayerName,
                     IsAlive = p.RoomEnabled,
-                    Role = room.Status == null ? RoomRole.Default : p.RoomRole,
+                    Role = p.RoomRole == null ? RoomRole.Default : p.RoomRole,
                     PlayerPhoto = p.PlayerPhoto,
                     RoomNumber = p.Room.RoomNumber,
                     RoomEnabled = p.RoomEnabled
