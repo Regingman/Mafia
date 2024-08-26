@@ -387,6 +387,7 @@ namespace Mafia.Application.Services.Mafia
                         Console.WriteLine(ex);
                     }
                     break;
+                default: Console.WriteLine($"default {stageUpdateType}"); break;
             }
 
             _context.SaveChanges();
