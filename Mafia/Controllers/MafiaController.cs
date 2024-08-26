@@ -224,9 +224,9 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // PUT: api/Mafia/RoomStageUpdate
         [HttpPut("RoomStageUpdate")]
-        public IActionResult RoomStageUpdate([FromBody] RoomStageUpdateRequest request)
+        public async Task<IActionResult> RoomStageUpdateAsync([FromBody] RoomStageUpdateRequest request)
         {
-            _mafiaService.RoomStageUpdate(request.RoomId, request.StageUpdateType);
+            await _mafiaService.RoomStageUpdate(request.RoomId, request.StageUpdateType);
             return Ok();
         }
 
