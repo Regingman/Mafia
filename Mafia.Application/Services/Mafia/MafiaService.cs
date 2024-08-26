@@ -355,28 +355,37 @@ namespace Mafia.Application.Services.Mafia
                     // Implement commisar whore logic
                     break;
                 case RoomStageUpdateType.StartDay:
-                    currentStage.Day = true;
-                    room.Status = Status.day;
-
-                    var userD = _context.RoomStagePlayers
-                        .OrderByDescending(e => e.Mafia)
-                        .Include(e => e.Room)
-                        .Include(e => e.Player)
-                        .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia);
-                    if (userD != null)
+                    try
                     {
-                        userD.Player.RoomEnabled = false;
+                        Console.WriteLine($"DayTime stage, start method!");
+                        currentStage.Day = true;
+                        room.Status = Status.day;
+
+                        var userD = _context.RoomStagePlayers
+                            .OrderByDescending(e => e.Mafia)
+                            .Include(e => e.Room)
+                            .Include(e => e.Player)
+                            .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia);
+                        if (userD != null)
+                        {
+                            userD.Player.RoomEnabled = false;
+                            foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                            {
+                                await _hubContext.Clients.User(temp).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
+                            }
+                        }
                         foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                         {
-                            await _hubContext.Clients.User(temp).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
+                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"It's DayTime. Roles take your actions.");
                         }
+                        Console.WriteLine($"DayTime stage, start sended!");
+                        //await _hubContext.Clients.Group(room.RoomNumber).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
                     }
-                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    catch (Exception ex)
                     {
-                        await _hubContext.Clients.User(temp).SendAsync("DayTime", $"It's DayTime. Roles take your actions.");
+
+                        Console.WriteLine(ex);
                     }
-                    Console.WriteLine($"DayTime stage, start sended!");
-                    //await _hubContext.Clients.Group(room.RoomNumber).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
                     break;
             }
 
