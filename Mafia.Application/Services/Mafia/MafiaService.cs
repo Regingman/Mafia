@@ -365,6 +365,7 @@ namespace Mafia.Application.Services.Mafia
                             .OrderByDescending(e => e.Mafia)
                             .Include(e => e.Room)
                             .Include(e => e.Player)
+                            .Include(e => e.Player.Player)
                             .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia);
                         if (userD != null)
                         {
