@@ -370,18 +370,12 @@ namespace Mafia.Application.Services.Mafia
                         {
                             await _hubContext.Clients.User(temp).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
                         }
-                        foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
-                        {
-                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"It's DayTime. Roles take your actions.");
-                        }
                     }
-                    else
+                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                     {
-                        foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
-                        {
-                            await _hubContext.Clients.User(temp).SendAsync("DayTime", $"It's DayTime. Roles take your actions.");
-                        }
+                        await _hubContext.Clients.User(temp).SendAsync("DayTime", $"It's DayTime. Roles take your actions.");
                     }
+                    Console.WriteLine($"DayTime stage, start sended!");
                     //await _hubContext.Clients.Group(room.RoomNumber).SendAsync("DayTime", $"Ночью не выжил: {userD.Player.PlayerName}. It's DayTime. Roles take your actions.");
                     break;
             }
