@@ -498,34 +498,66 @@ namespace Mafia.Application.Services.Mafia
 
         public async Task<bool> MafiaVote(int roomId, string playerId)
         {
-            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
-            vote.Mafia = true;
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                vote.Mafia = true;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex}");
+                return true;
+            }
         }
 
         public async Task<bool> CommisarVote(int roomId, string playerId)
         {
-            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
-            vote.Commisar_whore = true;
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                vote.Commisar_whore = true;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex}");
+                return true;
+            }
         }
 
         public async Task<bool> PutanaVote(int roomId, string playerId)
         {
-            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
-            vote.Putana = true;
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                vote.Putana = true;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex}");
+                return true;
+            }
         }
 
         public async Task<bool> DoctorVote(int roomId, string playerId)
         {
-            var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
-            vote.Doctor = true;
-            await _context.SaveChangesAsync();
-            return true;
+            try
+            {
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                vote.Doctor = true;
+                await _context.SaveChangesAsync();
+                return true;
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{ex}");
+                return true;
+            }
         }
     }
 }
