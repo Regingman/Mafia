@@ -4,6 +4,7 @@ using Mafia.Domain.Entities.Game;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -239,12 +240,14 @@ namespace Mafia.WebApi.Controllers
         [HttpPost("MafiaVote")]
         public async Task<IActionResult> PlayerVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string targetUserName)
         {
+            Console.WriteLine("start MafiaVote");
             await _mafiaService.MafiaVote(roomId, playerId); var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("MafiaConfirmKill", targetUserName);
             }
+            Console.WriteLine("start MafiaVote");
             return Ok();
         }
 
@@ -257,12 +260,14 @@ namespace Mafia.WebApi.Controllers
         [HttpPost("CommisarVote")]
         public async Task<IActionResult> CommisarVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string userName)
         {
+            Console.WriteLine("end CommisarVote");
             await _mafiaService.CommisarVote(roomId, playerId); var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("CommisarVotes", userName);
             }
+            Console.WriteLine("end CommisarVote");
             return Ok();
         }
 
@@ -275,6 +280,7 @@ namespace Mafia.WebApi.Controllers
         [HttpPost("PutanaVote")]
         public async Task<IActionResult> PutanaVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string userName)
         {
+            Console.WriteLine("start PutanaVote");
             await _mafiaService.PutanaVote(roomId, playerId); 
             var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
@@ -283,6 +289,7 @@ namespace Mafia.WebApi.Controllers
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("NightSleep", userName);
             }
 
+            Console.WriteLine("end PutanaVote");
             return Ok();
         }
 
@@ -295,6 +302,7 @@ namespace Mafia.WebApi.Controllers
         [HttpPost("DoctorVote")]
         public async Task<IActionResult> DoctorVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string userName)
         {
+            Console.WriteLine("Start DoctorVote");
             await _mafiaService.DoctorVote(roomId, playerId);
             var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
@@ -302,6 +310,7 @@ namespace Mafia.WebApi.Controllers
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DoctorVotes", userName);
             }
+            Console.WriteLine("end DoctorVote");
             return Ok();
         }
 
@@ -314,6 +323,7 @@ namespace Mafia.WebApi.Controllers
         [HttpPost("PlayerVote")]
         public async Task<IActionResult> PlayerVote([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string targetUserName)
         {
+            Console.WriteLine("start PlayerVote");
             _mafiaService.PlayerVote(roomId, playerId);
             var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
@@ -321,6 +331,7 @@ namespace Mafia.WebApi.Controllers
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVotes", targetUserName);
             }
+            Console.WriteLine("end PlayerVote");
             return Ok();
         }
 
