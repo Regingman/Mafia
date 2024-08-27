@@ -246,6 +246,8 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("MafiaConfirmKill", targetUserName);
+                Console.WriteLine($"send event DoctorVotes for {targetUserName}");
+
             }
             Console.WriteLine("start MafiaVote");
             return Ok();
@@ -266,6 +268,8 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("CommisarVotes", userName);
+                Console.WriteLine($"send event DoctorVotes for {userName}");
+
             }
             Console.WriteLine("end CommisarVote");
             return Ok();
@@ -287,6 +291,8 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("NightSleep", userName);
+                Console.WriteLine($"send event DoctorVotes for {userName}");
+
             }
 
             Console.WriteLine("end PutanaVote");
@@ -309,6 +315,7 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DoctorVotes", userName);
+                Console.WriteLine($"send event DoctorVotes for {userName}");
             }
             Console.WriteLine("end DoctorVote");
             return Ok();
@@ -329,7 +336,10 @@ namespace Mafia.WebApi.Controllers
 
             foreach (var playerStatus in playerStatuses)
             {
+
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVotes", targetUserName);
+                Console.WriteLine($"send event DoctorVotes for {targetUserName}");
+
             }
             Console.WriteLine("end PlayerVote");
             return Ok();
