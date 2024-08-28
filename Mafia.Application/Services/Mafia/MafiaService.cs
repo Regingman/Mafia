@@ -426,52 +426,60 @@ namespace Mafia.Application.Services.Mafia
 
         public async Task<GameStatus> UpdateGameStatus(int roomId)
         {
-            var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
-            var mafiaCount = room.Players.Count(p => p.RoomRole == RoomRole.Mafia && !p.RoomEnabled);
-            var civilianCount = room.Players.Count(p => p.RoomRole != RoomRole.Mafia && !p.RoomEnabled);
+            try
+            {
+                var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
+                var mafiaCount = room.Players.Count(p => p.RoomRole == RoomRole.Mafia && !p.RoomEnabled);
+                var civilianCount = room.Players.Count(p => p.RoomRole != RoomRole.Mafia && !p.RoomEnabled);
 
-            var result = new GameStatus();
-            bool mafiawin = false;
-            bool civilianwin = false;
-            if (mafiaCount == 0)
-            {
-                civilianwin = true;
-            }
-            else if (mafiaCount >= civilianCount)
-            {
-                mafiawin = true;
-            }
-            var user = _context.RoomStagePlayers.OrderByDescending(e => e.DayCount)
-                        .Include(e => e.Room)
-                        .Include(e => e.Player)
-                        .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber);
-            user.Player.RoomEnabled = false;
+                var result = new GameStatus();
+                bool mafiawin = false;
+                bool civilianwin = false;
+                if (mafiaCount == 0)
+                {
+                    civilianwin = true;
+                }
+                else if (mafiaCount >= civilianCount)
+                {
+                    mafiawin = true;
+                }
+                var user = _context.RoomStagePlayers.OrderByDescending(e => e.DayCount)
+                            .Include(e => e.Room)
+                            .Include(e => e.Player)
+                            .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber);
+                user.Player.RoomEnabled = false;
 
-            result.MafiaWin = mafiawin;
-            result.CivilianWin = civilianwin;
-            result.PlayerId = user.Player.PlayerId;
-            result.PlayerName = user.Player.PlayerName;
+                result.MafiaWin = mafiawin;
+                result.CivilianWin = civilianwin;
+                result.PlayerId = user.Player.PlayerId;
+                result.PlayerName = user.Player.PlayerName;
 
 
-            if (result.MafiaWin)
-            {
-                room.Status = Status.mafia_win;
-                room.EndDate = DateTime.Now;
-                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мафия выиграла");
+                if (result.MafiaWin)
+                {
+                    room.Status = Status.mafia_win;
+                    room.EndDate = DateTime.Now;
+                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мафия выиграла");
+                }
+                else if (result.CivilianWin)
+                {
+                    room.Status = Status.citizen_win;
+                    room.EndDate = DateTime.Now;
+                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мирные выиграли");
+                }
+                else
+                {
+                    room.Status = Status.winner_not;
+                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("UserKill", $"Ночью не выжил: {user.Player.PlayerName}.");
+                }
+                _context.SaveChanges();
+                return result;
             }
-            else if (result.CivilianWin)
+            catch (Exception ex)
             {
-                room.Status = Status.citizen_win;
-                room.EndDate = DateTime.Now;
-                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мирные выиграли");
+                Console.WriteLine(ex.ToString());
+                return null;
             }
-            else
-            {
-                room.Status = Status.winner_not;
-                await _hubContext.Clients.Group(room.RoomNumber).SendAsync("UserKill", $"Ночью не выжил: {user.Player.PlayerName}.");
-            }
-            _context.SaveChanges();
-            return result;
         }
 
         public async Task<int> UserRefresh(string userId, string roomNumber)
