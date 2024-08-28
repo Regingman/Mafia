@@ -10,6 +10,7 @@ using Mafia.Domain.Entities;
 using Mafia.Domain.Entities.Game;
 using Microsoft.AspNetCore.SignalR;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using Org.BouncyCastle.Asn1.Ocsp;
 using System;
 using System.Collections.Generic;
@@ -485,6 +486,8 @@ namespace Mafia.Application.Services.Mafia
                     }
                 }
                 _context.SaveChanges();
+                string jsonString = JsonConvert.SerializeObject(result, Formatting.Indented);
+
                 return result;
             }
             catch (Exception ex)
