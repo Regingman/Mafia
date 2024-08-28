@@ -459,18 +459,30 @@ namespace Mafia.Application.Services.Mafia
                 {
                     room.Status = Status.mafia_win;
                     room.EndDate = DateTime.Now;
-                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мафия выиграла");
+
+                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("GameStatus", $"Мафия выиграла");
+                    }
                 }
                 else if (result.CivilianWin)
                 {
                     room.Status = Status.citizen_win;
                     room.EndDate = DateTime.Now;
-                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("GameStatus", $"Мирные выиграли");
+
+                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("GameStatus", $"Мирные выиграли");
+                    }
                 }
                 else
                 {
                     room.Status = Status.winner_not;
-                    await _hubContext.Clients.Group(room.RoomNumber).SendAsync("UserKill", $"Ночью не выжил: {user.Player.PlayerName}.");
+
+                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    {
+                        await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью не выжил: {user.Player.PlayerName}.");
+                    }
                 }
                 _context.SaveChanges();
                 return result;

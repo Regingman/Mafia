@@ -354,7 +354,10 @@ namespace Mafia.WebApi.Controllers
         [HttpGet("UpdateGameStatus/{roomId}")]
         public ActionResult<GameStatus> UpdateGameStatus(int roomId)
         {
+            Console.WriteLine($"UpdateGameStatus roomId: {roomId} start");
             var status = _mafiaService.UpdateGameStatus(roomId);
+
+            Console.WriteLine($"UpdateGameStatus roomId: {roomId} end");
             return Ok(status);
         }
     }
