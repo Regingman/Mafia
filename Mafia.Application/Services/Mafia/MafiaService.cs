@@ -430,8 +430,8 @@ namespace Mafia.Application.Services.Mafia
             try
             {
                 var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
-                var mafiaCount = room.Players.Count(p => p.RoomRole == RoomRole.Mafia && !p.RoomEnabled);
-                var civilianCount = room.Players.Count(p => p.RoomRole != RoomRole.Mafia && !p.RoomEnabled);
+                var mafiaCount = room.Players.Count(p => p.RoomRole == RoomRole.Mafia && p.RoomEnabled == true);
+                var civilianCount = room.Players.Count(p => p.RoomRole != RoomRole.Mafia && p.RoomEnabled == true);
 
                 var result = new GameStatus();
                 bool mafiawin = false;
@@ -487,7 +487,7 @@ namespace Mafia.Application.Services.Mafia
                 }
                 _context.SaveChanges();
                 string jsonString = JsonConvert.SerializeObject(result, Formatting.Indented);
-
+                Console.WriteLine(jsonString);
                 return result;
             }
             catch (Exception ex)
