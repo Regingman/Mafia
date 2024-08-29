@@ -526,7 +526,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Mafia = true;
-                _context.Update(vote);
+                _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -543,7 +543,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Commisar_whore = true;
-                _context.Update(vote);
+                _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -560,7 +560,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Putana = true;
-                _context.Update(vote);
+                _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -577,7 +577,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Doctor = true;
-                _context.Update(vote);
+                _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 return true;
             }
