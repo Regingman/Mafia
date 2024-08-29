@@ -352,10 +352,10 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // GET: api/Mafia/UpdateGameStatus/{roomId}
         [HttpGet("UpdateGameStatus/{roomId}")]
-        public ActionResult<GameStatus> UpdateGameStatus(int roomId)
+        public async Task<ActionResult<GameStatus>> UpdateGameStatus(int roomId)
         {
             Console.WriteLine($"UpdateGameStatus roomId: {roomId} start");
-            var status = _mafiaService.UpdateGameStatus(roomId);
+            var status = await _mafiaService.UpdateGameStatus(roomId);
 
             Console.WriteLine($"UpdateGameStatus roomId: {roomId} end");
             return Ok(status);

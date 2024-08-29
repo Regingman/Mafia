@@ -417,6 +417,7 @@ namespace Mafia.Application.Services.Mafia
 
                 stagePlayers.Day = true;
                 stagePlayers.DayCount += 1;
+                _context.Update(stagePlayers);
                 _context.SaveChanges();
             }
             else
@@ -525,6 +526,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
                 vote.Mafia = true;
+                _context.Update(vote);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -541,6 +543,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
                 vote.Commisar_whore = true;
+                _context.Update(vote);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -557,6 +560,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
                 vote.Putana = true;
+                _context.Update(vote);
                 await _context.SaveChangesAsync();
                 return true;
             }
@@ -573,6 +577,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
                 vote.Doctor = true;
+                _context.Update(vote);
                 await _context.SaveChangesAsync();
                 return true;
             }
