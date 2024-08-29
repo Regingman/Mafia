@@ -370,10 +370,39 @@ namespace Mafia.Application.Services.Mafia
                             .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia);
                         if (userD != null)
                         {
-                            userD.Player.RoomEnabled = false;
+                            var player = await _context.RoomPlayers.FirstOrDefaultAsync(e => e.Id == userD.PlayerId);
+                            player.RoomEnabled = false;
+                            _context.Entry(player).State = EntityState.Modified;
+                            await _context.SaveChangesAsync();
+
+
                             foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                             {
                                 await _hubContext.Clients.User(temp).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
+                            }
+
+                            if (userD.Mafia && !userD.Doctor && !userD.Putana)
+                            {
+                                foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                                {
+                                    await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью не выжил: {userD.Player.PlayerName}.");
+                                }
+                            }
+
+                            if (userD.Mafia && userD.Doctor)
+                            {
+                                foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                                {
+                                    await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью мафии не удалось убить никого, врач спас жертву");
+                                }
+                            }
+
+                            if (userD.Mafia && userD.Putana)
+                            {
+                                foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                                {
+                                    await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью мафии не удалось убить никого, путана спасла жертву");
+                                }
                             }
                         }
                         foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
@@ -448,13 +477,19 @@ namespace Mafia.Application.Services.Mafia
                 var user = _context.RoomStagePlayers.OrderByDescending(e => e.DayCount)
                             .Include(e => e.Room)
                             .Include(e => e.Player)
-                            .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber);
-                user.Player.RoomEnabled = false;
-
+                            .OrderByDescending(e => e.DayCount)
+                            .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.DayCount != 0);
+                if (user != null)
+                {
+                    var player = await _context.RoomPlayers.FirstOrDefaultAsync(e => e.Id == user.PlayerId);
+                    player.RoomEnabled = false;
+                    _context.Entry(player).State = EntityState.Modified;
+                    await _context.SaveChangesAsync();
+                    result.PlayerId = user.Player.PlayerId;
+                    result.PlayerName = user.Player.PlayerName;
+                }
                 result.MafiaWin = mafiawin;
                 result.CivilianWin = civilianwin;
-                result.PlayerId = user.Player.PlayerId;
-                result.PlayerName = user.Player.PlayerName;
 
 
                 if (result.MafiaWin)
@@ -480,11 +515,14 @@ namespace Mafia.Application.Services.Mafia
                 else
                 {
                     room.Status = Status.winner_not;
-
-                    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                    if (user != null)
                     {
-                        await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью не выжил: {user.Player.PlayerName}.");
+                        foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                        {
+                            await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Днем жители принесли в жертву: {user.Player.PlayerName}.");
+                        }
                     }
+
                 }
                 _context.SaveChanges();
                 string jsonString = JsonConvert.SerializeObject(result, Formatting.Indented);
