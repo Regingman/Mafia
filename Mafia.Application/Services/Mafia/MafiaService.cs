@@ -524,7 +524,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Mafia = true;
                 _context.Update(vote);
                 await _context.SaveChangesAsync();
@@ -541,7 +541,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Commisar_whore = true;
                 _context.Update(vote);
                 await _context.SaveChangesAsync();
@@ -558,7 +558,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Putana = true;
                 _context.Update(vote);
                 await _context.SaveChangesAsync();
@@ -575,7 +575,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
                 vote.Doctor = true;
                 _context.Update(vote);
                 await _context.SaveChangesAsync();
