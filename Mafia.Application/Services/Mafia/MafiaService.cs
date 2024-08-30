@@ -480,6 +480,7 @@ namespace Mafia.Application.Services.Mafia
                 var user = _context.RoomStagePlayers.OrderByDescending(e => e.DayCount)
                             .Include(e => e.Room)
                             .Include(e => e.Player)
+                            .Include(e => e.Player.Player)
                             .OrderByDescending(e => e.DayCount)
                             .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.DayCount != 0);
                 if (user != null)
@@ -523,6 +524,10 @@ namespace Mafia.Application.Services.Mafia
                         foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                         {
                             await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Днем жители принесли в жертву: {user.Player.PlayerName}.");
+                        }
+                        foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
+                        {
+                            await _hubContext.Clients.User(temp).SendAsync("KillNigth", $"{user.Player.Player.Id}");
                         }
                     }
 
