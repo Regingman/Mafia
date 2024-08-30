@@ -370,7 +370,7 @@ namespace Mafia.Application.Services.Mafia
                             .Include(e => e.Room)
                             .Include(e => e.Player)
                             .Include(e => e.Player.Player)
-                            .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia && e.RoomId == roomId);
+                            .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia && e.Room.RoomId == roomId);
                         if (userD != null)
                         {
                             var player = await _context.RoomPlayers.FirstOrDefaultAsync(e => e.Id == userD.PlayerId);
@@ -565,7 +565,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).Include(e => e.Room).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.Room.RoomId == roomId);
                 vote.Mafia = true;
                 _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -582,7 +582,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).Include(e => e.Room).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.Room.RoomId == roomId);
                 vote.Commisar_whore = true;
                 _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -599,7 +599,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).Include(e => e.Room).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.Room.RoomId == roomId);
                 vote.Putana = true;
                 _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
@@ -616,7 +616,7 @@ namespace Mafia.Application.Services.Mafia
         {
             try
             {
-                var vote = await _context.RoomStagePlayers.Include(e => e.Player).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.RoomId == roomId);
+                var vote = await _context.RoomStagePlayers.Include(e => e.Player).Include(e => e.Room).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.Room.RoomId == roomId);
                 vote.Doctor = true;
                 _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
