@@ -132,6 +132,7 @@ namespace Mafia.Application.Services.Mafia
 
         public void StartGame(int roomId)
         {
+            Console.WriteLine("Start Game");
             var room = _context.Rooms.Include(r => r.Players).Include(e => e.Stages).FirstOrDefault(r => r.Id == roomId);
             if (room != null /*&& room.Players.Count == room.PlayerCount && room.Stages.Count == 0*/)
             {
@@ -287,6 +288,8 @@ namespace Mafia.Application.Services.Mafia
                 _context.SaveChanges();
 
                 var players = GetAllPlayerStatusLiveCheck(room.Id);
+
+                Console.WriteLine("Start Nigth RoomStagePlayer");
                 foreach (var temp in players)
                 {
                     var roomStage = new RoomStagePlayer()
