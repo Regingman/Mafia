@@ -246,7 +246,7 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("MafiaConfirmKill", targetUserName);
-                Console.WriteLine($"send event MafiaConfirmKill: target {targetUserName}, user {playerStatus.PlayerUserName}");
+                Console.WriteLine($"roomId {roomId}, playerId {playerId} send event MafiaConfirmKill: target {targetUserName}, user {playerStatus.PlayerUserName}");
 
             }
             Console.WriteLine("start MafiaVote");
@@ -268,7 +268,7 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("CommisarVotes", userName);
-                Console.WriteLine($"send event CommisarVotes: target {userName}, user {playerStatus.PlayerUserName}");
+                Console.WriteLine($"roomId {roomId}, playerId {playerId} send event CommisarVotes: target {userName}, user {playerStatus.PlayerUserName}");
 
             }
             Console.WriteLine("end CommisarVote");
@@ -291,7 +291,7 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("NightSleep", userName);
-                Console.WriteLine($"send event NightSleep: target {userName}, user {playerStatus.PlayerUserName}");
+                Console.WriteLine($"roomId {roomId}, playerId {playerId} send event NightSleep: target {userName}, user {playerStatus.PlayerUserName}");
 
             }
 
@@ -315,7 +315,7 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DoctorVotes", userName);
-                Console.WriteLine($"send event DoctorVotes: target {userName}, user {playerStatus.PlayerUserName}");
+                Console.WriteLine($"roomId {roomId}, playerId {playerId} send event DoctorVotes: target {userName}, user {playerStatus.PlayerUserName}");
             }
             Console.WriteLine("end DoctorVote");
             return Ok();
@@ -338,7 +338,7 @@ namespace Mafia.WebApi.Controllers
             {
 
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVotes", targetUserName);
-                Console.WriteLine($"send event PlayerVotes: target {targetUserName}, user {playerStatus.PlayerUserName}");
+                Console.WriteLine($"roomId {roomId}, playerId {playerId} send event PlayerVotes: target {targetUserName}, user {playerStatus.PlayerUserName}");
 
             }
             Console.WriteLine("end PlayerVote");
