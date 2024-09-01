@@ -1,11 +1,14 @@
 ﻿using Mafia.Application.Services;
 using Mafia.Application.Services.Mafia;
+using Mafia.Domain.Data.Adapters;
 using Mafia.Domain.Entities.Game;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.SignalR;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Mafia.WebApi.Controllers
@@ -16,12 +19,14 @@ namespace Mafia.WebApi.Controllers
     public class MafiaController : ControllerBase
     {
         private readonly IMafiaService _mafiaService;
+        private readonly MafiaDbContext _context;
         private readonly IHubContext<ChatHub> _hubContext;
 
-        public MafiaController(IMafiaService mafiaService, IHubContext<ChatHub> hubContext)
+        public MafiaController(IMafiaService mafiaService, IHubContext<ChatHub> hubContext, MafiaDbContext context)
         {
             _mafiaService = mafiaService;
             _hubContext = hubContext;
+            _context = context;
         }
         /// <summary>
         /// Список комнат для админа
@@ -202,6 +207,9 @@ namespace Mafia.WebApi.Controllers
         public ActionResult<List<PlayerStatus>> GetAllPlayerStatusLive(int roomId)
         {
             var statuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+            var room = _context.Rooms.Include(e => e.User).FirstOrDefault(r => r.Id == roomId);
+            statuses = statuses.Where(e => e.PlayerId != room.UserId).ToList();
+
             return Ok(statuses);
         }
 
@@ -215,6 +223,8 @@ namespace Mafia.WebApi.Controllers
         public ActionResult<List<PlayerStatus>> GetAllPlayerStatusLiveUser(int roomId)
         {
             var statuses = _mafiaService.GetAllPlayerStatusLiveUser(roomId);
+            var room = _context.Rooms.Include(e => e.User).FirstOrDefault(r => r.Id == roomId);
+            statuses = statuses.Where(e => e.PlayerId != room.UserId).ToList();
             return Ok(statuses);
         }
 
@@ -285,7 +295,7 @@ namespace Mafia.WebApi.Controllers
         public async Task<IActionResult> PutanaVoteAsync([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string userName)
         {
             Console.WriteLine("start PutanaVote");
-            await _mafiaService.PutanaVote(roomId, playerId); 
+            await _mafiaService.PutanaVote(roomId, playerId);
             var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
             foreach (var playerStatus in playerStatuses)

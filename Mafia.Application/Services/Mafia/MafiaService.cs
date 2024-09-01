@@ -199,10 +199,10 @@ namespace Mafia.Application.Services.Mafia
         {
             var user = _currentUserService.ApplicationUser.Id;
             Console.WriteLine(_currentUserService.ApplicationUser.Id);
-            var room = _context.Rooms.Include(r => r.Players).ThenInclude(e => e.Player).FirstOrDefault(r => r.Id == roomId);
+            var room = _context.Rooms.Include(e => e.User).Include(r => r.Players).ThenInclude(e => e.Player).FirstOrDefault(r => r.Id == roomId);
             if (room != null)
             {
-                return room.Players.Select(p => new PlayerStatus
+                var list = room.Players.Select(p => new PlayerStatus
                 {
                     IsYou = p.PlayerId.Contains(user) ? true : false,
                     PlayerId = p.PlayerId,
@@ -214,6 +214,20 @@ namespace Mafia.Application.Services.Mafia
                     RoomNumber = p.Room.RoomNumber,
                     RoomEnabled = p.RoomEnabled
                 }).ToList();
+                var admin = new PlayerStatus()
+                {
+                    IsYou = false,
+                    PlayerId = room.UserId,
+                    PlayerUserName = room.User.UserName,
+                    PlayerName = "",
+                    IsAlive = false,
+                    Role = RoomRole.Default,
+                    PlayerPhoto = "",
+                    RoomNumber = room.RoomNumber,
+                    RoomEnabled = false
+                };
+                list.Add(admin);
+                return list;
             }
             else
             {
