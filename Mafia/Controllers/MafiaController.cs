@@ -1,4 +1,6 @@
-﻿using Mafia.Application.Services;
+﻿using DocumentFormat.OpenXml.Spreadsheet;
+using DocumentFormat.OpenXml.Wordprocessing;
+using Mafia.Application.Services;
 using Mafia.Application.Services.Mafia;
 using Mafia.Domain.Data.Adapters;
 using Mafia.Domain.Entities.Game;
@@ -28,6 +30,76 @@ namespace Mafia.WebApi.Controllers
             _hubContext = hubContext;
             _context = context;
         }
+
+
+        /// <summary>
+        /// Кол-во голосов у пользователя днем
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("UserVoteCounts")]
+        public async Task<ActionResult<int>> UserVoteCounts([FromQuery] string playerId, [FromQuery] int roomId)
+        {
+            var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
+            if (room != null)
+            {
+                var stagePlayers = await _context.RoomStagePlayers
+                    .Include(e => e.Room)
+                    .Include(e => e.Player)
+                    .FirstOrDefaultAsync(e => e.Room.Stage == room.CurrentStageNumber && e.Player.PlayerId == playerId);
+                return Ok(stagePlayers.DayCount);
+            }
+
+            return Ok(0);
+        }
+
+        /// <summary>
+        /// Список с кол-вом голосов у пользователей днем
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("UserVoteCountList")]
+        public async Task<ActionResult<List<PlayerStatus>>> UserVoteCountList([FromQuery] int roomId)
+        {
+            var statuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+            var room = _context.Rooms.Include(e => e.User).FirstOrDefault(r => r.Id == roomId);
+            statuses = statuses.Where(e => e.PlayerId != room.UserId).ToList();
+            foreach (var status in statuses)
+            {
+                var stagePlayers = _context.RoomStagePlayers
+                    .Include(e => e.Room)
+                    .Include(e => e.Player)
+                    .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.Player.PlayerId == status.PlayerId);
+
+                status.Count = stagePlayers.DayCount;
+            }
+            return Ok(statuses);
+        }
+
+        /// <summary>
+        /// Кого убили ночью
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("KillNightAdmin")]
+        public async Task<ActionResult<string>> KillNightAdmin([FromQuery] int roomId)
+        {
+            var currentStage = _context.RoomStages.OrderByDescending(e => e.Stage).FirstOrDefault(e => e.RoomId == roomId);
+            var userD = _context.RoomStagePlayers
+                            .OrderByDescending(e => e.Mafia)
+                            .Include(e => e.Room)
+                            .Include(e => e.Player)
+                            .Include(e => e.Player.Player)
+                            .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia && e.Room.RoomId == roomId);
+            if (userD != null)
+            {
+                var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
+                foreach (var playerStatus in playerStatuses)
+                {
+                    await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("KillNightAdmin", $"{userD.Player.Player.Id}");
+                }
+            }
+
+            return Ok();
+        }
+
         /// <summary>
         /// Список комнат для админа
         /// </summary>

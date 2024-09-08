@@ -39,7 +39,7 @@ namespace Mafia.Application.Services.Mafia
 
         public async Task<int> UserCreate(string userId, string roomNumber, string name, int age, Gender gender, string photo)
         {
-            var room = await _context.Rooms.FirstOrDefaultAsync(e => e.RoomNumber == roomNumber);
+            var room = await _context.Rooms.OrderByDescending(e=>e.Id).FirstOrDefaultAsync(e => e.RoomNumber == roomNumber);
             if (room == null)
             {
                 throw new InvalidOperationException("Room not found");
@@ -78,7 +78,7 @@ namespace Mafia.Application.Services.Mafia
 
         string GenerateRandomText(int length)
         {
-            const string chars = "ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789";
+            const string chars = "0123456789";
             var random = new Random();
             var stringBuilder = new StringBuilder(length);
 

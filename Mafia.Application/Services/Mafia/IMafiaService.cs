@@ -56,6 +56,7 @@ namespace Mafia.Application.Services.Mafia
         public RoomRole? Role { get; set; }
         public bool RoomEnabled { get; set; } = true;
         public bool IsYou { get; set; }
+        public int Count { get; set; }
     }
 
     public class GameStatus
