@@ -79,7 +79,7 @@ namespace Mafia.WebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("KillNightAdmin")]
-        public async Task<ActionResult<string>> KillNightAdmin([FromQuery] int roomId)
+        public async Task<ActionResult> KillNightAdmin([FromQuery] int roomId)
         {
             var currentStage = _context.RoomStages.OrderByDescending(e => e.Stage).FirstOrDefault(e => e.RoomId == roomId);
             var userD = _context.RoomStagePlayers
@@ -93,10 +93,33 @@ namespace Mafia.WebApi.Controllers
                 var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
                 foreach (var playerStatus in playerStatuses)
                 {
-                    await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("KillNightAdmin", $"{userD.Player.Player.Id}");
+                    await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
+                }
+
+                if (userD.Mafia && !userD.Doctor && !userD.Putana)
+                {
+                    foreach (var temp in playerStatuses)
+                    {
+                        await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("UserKill", $"Ночью не выжил: {userD.Player.PlayerName}.");
+                    }
+                }
+
+                if (userD.Mafia && userD.Doctor)
+                {
+                    foreach (var temp in playerStatuses)
+                    {
+                        await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("UserKill", $"Ночью мафии не удалось убить никого, врач спас жертву");
+                    }
+                }
+
+                if (userD.Mafia && userD.Putana)
+                {
+                    foreach (var temp in playerStatuses)
+                    {
+                        await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("UserKill", $"Ночью мафии не удалось убить никого, путана спасла жертву");
+                    }
                 }
             }
-
             return Ok();
         }
 
