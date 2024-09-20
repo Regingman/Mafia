@@ -443,6 +443,7 @@ namespace Mafia.WebApi.Controllers
             {
 
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVotes", targetUserName);
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVoteOnline", playerId);
                 Console.WriteLine($"roomId {roomId}, playerId {playerId} send event PlayerVotes: target {targetUserName}, user {playerStatus.PlayerUserName}");
 
             }
