@@ -392,35 +392,15 @@ namespace Mafia.Application.Services.Mafia
                             _context.Entry(player).State = EntityState.Modified;
                             await _context.SaveChangesAsync();
 
+                            if (userD.Mafia && userD.Doctor)
+                            {
+                                player.RoomEnabled = true;
+                            }
 
-                            //foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
-                            //{
-                            //    await _hubContext.Clients.User(temp).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
-                            //}
-
-                            //if (userD.Mafia && !userD.Doctor && !userD.Putana)
-                            //{
-                            //    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
-                            //    {
-                            //        await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью не выжил: {userD.Player.PlayerName}.");
-                            //    }
-                            //}
-
-                            //if (userD.Mafia && userD.Doctor)
-                            //{
-                            //    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
-                            //    {
-                            //        await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью мафии не удалось убить никого, врач спас жертву");
-                            //    }
-                            //}
-
-                            //if (userD.Mafia && userD.Putana)
-                            //{
-                            //    foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
-                            //    {
-                            //        await _hubContext.Clients.User(temp).SendAsync("UserKill", $"Ночью мафии не удалось убить никого, путана спасла жертву");
-                            //    }
-                            //}
+                            if (userD.Mafia && userD.Putana)
+                            {
+                                player.RoomEnabled = true;
+                            }
                         }
                         foreach (var temp in GetAllPlayerStatusLive(room.Id).Select(e => e.PlayerUserName))
                         {
