@@ -260,13 +260,13 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/DayVoteProposeKill
         [HttpPost("DayVoteProposeKill")]
-        public async Task<IActionResult> DayVoteProposeKillAsync([FromQuery] int roomId, [FromQuery] string targetUserName)
+        public async Task<IActionResult> DayVoteProposeKillAsync([FromQuery] int roomId, [FromQuery] string targetUserName, [FromQuery] string authorUserName)
         {
             var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
             foreach (var playerStatus in playerStatuses)
             {
-                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DayVoteProposeKill", targetUserName);
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DayVoteProposeKill", $"{targetUserName} {authorUserName}");
             }
 
             return Ok();
@@ -280,13 +280,17 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/DayVoteConfirmKill
         [HttpPost("DayVoteConfirmKill")]
-        public async Task<IActionResult> DayVoteConfirmKillAsync([FromQuery] int roomId, [FromQuery] string targetUserName)
+        public async Task<IActionResult> DayVoteConfirmKillAsync([FromQuery] int roomId, 
+            [FromQuery] string playerId,
+            [FromQuery] string targetUserName,
+            [FromQuery] string authorUserName)
         {
+            _mafiaService.PlayerVote(roomId, playerId);
             var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
 
             foreach (var playerStatus in playerStatuses)
             {
-                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DayVoteConfirmKill", targetUserName);
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("DayVoteConfirmKill", $"{targetUserName} {authorUserName}");
             }
 
             return Ok();
