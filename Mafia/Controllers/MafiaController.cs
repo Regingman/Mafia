@@ -437,7 +437,8 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/PlayerVote
         [HttpPost("PlayerVote")]
-        public async Task<IActionResult> PlayerVote([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string targetUserName)
+        public async Task<IActionResult> PlayerVote([FromQuery] int roomId, [FromQuery] string playerId, [FromQuery] string targetUserName,
+            [FromQuery] string authorUserName)
         {
             Console.WriteLine("start PlayerVote");
             _mafiaService.PlayerVote(roomId, playerId);
@@ -446,7 +447,7 @@ namespace Mafia.WebApi.Controllers
             foreach (var playerStatus in playerStatuses)
             {
 
-                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVotes", targetUserName);
+                await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVotes", $"{targetUserName} {authorUserName}");
                 await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("PlayerVoteOnline", playerId);
                 Console.WriteLine($"roomId {roomId}, playerId {playerId} send event PlayerVotes: target {targetUserName}, user {playerStatus.PlayerUserName}");
 
