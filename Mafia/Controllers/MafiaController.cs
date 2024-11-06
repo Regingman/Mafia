@@ -91,16 +91,16 @@ namespace Mafia.WebApi.Controllers
             if (userD != null)
             {
                 var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
-                foreach (var playerStatus in playerStatuses)
-                {
-                    await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
-                }
 
                 if (userD.Mafia && !userD.Doctor && !userD.Putana)
                 {
                     foreach (var temp in playerStatuses)
                     {
                         await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("UserKill", $"Ночью не выжил: {userD.Player.PlayerName}.");
+                    }
+                    foreach (var playerStatus in playerStatuses)
+                    {
+                        await _hubContext.Clients.User(playerStatus.PlayerUserName).SendAsync("KillNigth", $"{userD.Player.Player.Id}");
                     }
                 }
 
