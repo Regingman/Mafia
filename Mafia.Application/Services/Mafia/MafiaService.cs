@@ -288,7 +288,7 @@ namespace Mafia.Application.Services.Mafia
             //}
 
             // Если начинается ночь, и все предыдущие ночные этапы завершены, создаем новую стадию
-            if (stageUpdateType == RoomStageUpdateType.StartNight && (currentStage.Stage == 1 && currentStage.Nigth == true))
+            if (stageUpdateType == RoomStageUpdateType.StartNight)
             {
                 //if (currentStage != null && IsNightComplete(currentStage))
                 //{
