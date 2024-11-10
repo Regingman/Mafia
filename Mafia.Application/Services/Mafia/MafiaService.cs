@@ -72,6 +72,7 @@ namespace Mafia.Application.Services.Mafia
         public async Task<PaginatedList<RoomResponse>> ListRoomAsync(int page, int size)
         {
             return await _context.Rooms.Include(r => r.Players).Include(r => r.Stages)
+                .OrderByDescending(r => r.Id)
                      .ProjectTo<RoomResponse>(_mapper.ConfigurationProvider)
                      .PaginatedListAsync(page, size); ;
         }
