@@ -459,22 +459,8 @@ namespace Mafia.Application.Services.Mafia
             try
             {
                 var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
-                var allCount = _context.RoomPlayers.Where(p => p.RoomEnabled == true && p.RoomId == roomId);
-                var mafiaCount = allCount.Where(p => p.RoomRole == RoomRole.Mafia).Count();
-                var civilianCount = allCount.Count() - mafiaCount;
-                Console.WriteLine($"mafia count {mafiaCount}");
-                Console.WriteLine($"civilian count {civilianCount}");
+
                 var result = new GameStatus();
-                bool mafiawin = false;
-                bool civilianwin = false;
-                if (mafiaCount == 0)
-                {
-                    civilianwin = true;
-                }
-                else if (mafiaCount >= civilianCount)
-                {
-                    mafiawin = true;
-                }
                 var user = _context.RoomStagePlayers.OrderByDescending(e => e.DayCount)
                             .Include(e => e.Room)
                             .Include(e => e.Player)
@@ -489,6 +475,21 @@ namespace Mafia.Application.Services.Mafia
                     await _context.SaveChangesAsync();
                     result.PlayerId = user.Player.PlayerId;
                     result.PlayerName = user.Player.PlayerName;
+                }
+                var allCount = _context.RoomPlayers.Where(p => p.RoomEnabled == true && p.RoomId == roomId);
+                var mafiaCount = allCount.Where(p => p.RoomRole == RoomRole.Mafia).Count();
+                var civilianCount = allCount.Count() - mafiaCount;
+                Console.WriteLine($"mafia count {mafiaCount}");
+                Console.WriteLine($"civilian count {civilianCount}");
+                bool mafiawin = false;
+                bool civilianwin = false;
+                if (mafiaCount == 0)
+                {
+                    civilianwin = true;
+                }
+                else if (mafiaCount >= civilianCount)
+                {
+                    mafiawin = true;
                 }
                 result.MafiaWin = mafiawin;
                 result.CivilianWin = civilianwin;
