@@ -87,6 +87,7 @@ namespace Mafia.WebApi.Controllers
                             .Include(e => e.Room)
                             .Include(e => e.Player)
                             .Include(e => e.Player.Player)
+                            .OrderByDescending(e => e.MafiaCount)
                             .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia && e.Room.RoomId == roomId);
             if (userD != null)
             {
@@ -280,7 +281,7 @@ namespace Mafia.WebApi.Controllers
         /// <returns></returns>
         // POST: api/Mafia/DayVoteConfirmKill
         [HttpPost("DayVoteConfirmKill")]
-        public async Task<IActionResult> DayVoteConfirmKillAsync([FromQuery] int roomId, 
+        public async Task<IActionResult> DayVoteConfirmKillAsync([FromQuery] int roomId,
             [FromQuery] string playerId,
             [FromQuery] string targetUserName,
             [FromQuery] string authorUserName)

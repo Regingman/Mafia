@@ -386,6 +386,7 @@ namespace Mafia.Application.Services.Mafia
                             .Include(e => e.Room)
                             .Include(e => e.Player)
                             .Include(e => e.Player.Player)
+                            .OrderByDescending(e => e.MafiaCount)
                             .FirstOrDefault(e => e.Room.Stage == currentStage.Stage && e.Mafia && e.Room.RoomId == roomId);
                         if (userD != null)
                         {
@@ -571,6 +572,7 @@ namespace Mafia.Application.Services.Mafia
             {
                 var vote = await _context.RoomStagePlayers.OrderByDescending(e => e.Room.Stage).Include(e => e.Player).Include(e => e.Room).FirstOrDefaultAsync(e => e.Player.PlayerId == playerId && e.Room.RoomId == roomId);
                 vote.Mafia = true;
+                vote.MafiaCount += 1;
                 _context.Entry(vote).State = EntityState.Modified;
                 await _context.SaveChangesAsync();
                 return true;
