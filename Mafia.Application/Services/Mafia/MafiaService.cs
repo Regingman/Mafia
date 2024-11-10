@@ -297,6 +297,7 @@ namespace Mafia.Application.Services.Mafia
                     Stage = currentStage.Stage + 1
                     // Инициализируем другие поля, если нужно
                 };
+                room.CurrentStageNumber = newStage.Stage;
                 room.Stages.Add(newStage);
                 currentStage = newStage;
                 _context.SaveChanges();
@@ -439,7 +440,7 @@ namespace Mafia.Application.Services.Mafia
                 var stagePlayers = _context.RoomStagePlayers
                     .Include(e => e.Room)
                     .Include(e => e.Player)
-                    .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.Player.PlayerId == playerId);
+                    .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.Player.PlayerId == playerId && e.Room.RoomId == roomId);
 
                 stagePlayers.Day = true;
                 stagePlayers.DayCount += 1;
