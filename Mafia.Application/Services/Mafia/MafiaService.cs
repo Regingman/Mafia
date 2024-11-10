@@ -477,7 +477,7 @@ namespace Mafia.Application.Services.Mafia
                             .Include(e => e.Player)
                             .Include(e => e.Player.Player)
                             .OrderByDescending(e => e.DayCount)
-                            .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.DayCount != 0);
+                            .FirstOrDefault(e => e.Room.Stage == room.CurrentStageNumber && e.DayCount != 0 && e.Room.RoomId == roomId);
                 if (user != null)
                 {
                     var player = await _context.RoomPlayers.FirstOrDefaultAsync(e => e.Id == user.PlayerId);
