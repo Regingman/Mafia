@@ -460,9 +460,10 @@ namespace Mafia.Application.Services.Mafia
             {
                 var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
                 var allCount = _context.RoomPlayers.Where(p => p.RoomEnabled == true && p.RoomId == roomId);
-                var mafiaCount = _context.RoomPlayers.Where(p => p.RoomRole == RoomRole.Mafia).Count();
+                var mafiaCount = allCount.Where(p => p.RoomRole == RoomRole.Mafia).Count();
                 var civilianCount = allCount.Count() - mafiaCount;
-
+                Console.WriteLine($"mafia count {mafiaCount}");
+                Console.WriteLine($"civilian count {civilianCount}");
                 var result = new GameStatus();
                 bool mafiawin = false;
                 bool civilianwin = false;
