@@ -39,7 +39,7 @@ namespace Mafia.Application.Services.Mafia
 
         public async Task<int> UserCreate(string userId, string roomNumber, string name, int age, Gender gender, string photo)
         {
-            var room = await _context.Rooms.OrderByDescending(e=>e.Id).FirstOrDefaultAsync(e => e.RoomNumber == roomNumber);
+            var room = await _context.Rooms.OrderByDescending(e => e.Id).FirstOrDefaultAsync(e => e.RoomNumber == roomNumber);
             if (room == null)
             {
                 throw new InvalidOperationException("Room not found");
@@ -459,8 +459,9 @@ namespace Mafia.Application.Services.Mafia
             try
             {
                 var room = _context.Rooms.Include(r => r.Players).FirstOrDefault(r => r.Id == roomId);
-                var mafiaCount = room.Players.Count(p => p.RoomRole == RoomRole.Mafia && p.RoomEnabled == true);
-                var civilianCount = room.Players.Count(p => p.RoomRole != RoomRole.Mafia && p.RoomEnabled == true);
+                var allCount = _context.RoomPlayers.Where(p => p.RoomEnabled == true && p.RoomId == roomId);
+                var mafiaCount = _context.RoomPlayers.Where(p => p.RoomRole == RoomRole.Mafia).Count();
+                var civilianCount = allCount.Count() - mafiaCount;
 
                 var result = new GameStatus();
                 bool mafiawin = false;
