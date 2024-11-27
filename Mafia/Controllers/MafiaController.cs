@@ -53,6 +53,41 @@ namespace Mafia.WebApi.Controllers
         }
 
         /// <summary>
+        /// Перераспределение ролей
+        /// </summary>
+        /// <returns></returns>
+        [HttpGet("redistribute-roles/{roomId}")]
+        public async Task<IActionResult> RedistributeRolesAsync([FromQuery] int roomId)
+        {
+            // Получаем список игроков из базы данных по RoomId
+            var players = await _context.RoomPlayers
+                .Where(rp => rp.RoomId == roomId)
+                .ToListAsync();
+
+            if (players == null || !players.Any())
+            {
+                return NotFound("No players found for the specified RoomId.");
+            }
+
+            // Пример распределения ролей (можно использовать свой алгоритм)
+            var roles = Enum.GetValues(typeof(RoomRole)).Cast<RoomRole>().ToList();
+            var random = new Random();
+
+            foreach (var player in players)
+            {
+                // Назначаем случайную роль игроку
+                player.RoomRole = roles[random.Next(roles.Count)];
+                _context.Entry(player).State = EntityState.Modified;
+            }
+
+            // Сохраняем изменения
+            await _context.SaveChangesAsync();
+
+            return Ok($"Roles redistributed for {players.Count} players in Room {roomId}.");
+        }
+
+
+        /// <summary>
         /// Список с кол-вом голосов у пользователей днем
         /// </summary>
         /// <returns></returns>
