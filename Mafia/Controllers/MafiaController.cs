@@ -85,7 +85,7 @@ namespace Mafia.WebApi.Controllers
             var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId); 
             foreach (var temp in playerStatuses)
             {
-                await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("UserKill", $"Роли перераспределены");
+                await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("RefreshRole", $"Роли перераспределены");
             }
 
             return Ok($"Roles redistributed for {players.Count} players in Room {roomId}.");
