@@ -82,6 +82,11 @@ namespace Mafia.WebApi.Controllers
 
             // Сохраняем изменения
             await _context.SaveChangesAsync();
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId); 
+            foreach (var temp in playerStatuses)
+            {
+                await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("UserKill", $"Роли перераспределены");
+            }
 
             return Ok($"Roles redistributed for {players.Count} players in Room {roomId}.");
         }
