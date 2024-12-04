@@ -43,8 +43,8 @@ namespace Mafia.Domain.Entities.Game
         public int PlayerCount { get; set; }
         public int PlayerCurrentCount { get; set; }
 
-        public List<RoomPlayerResponse> Players { get; set; }
-        public List<RoomStageResponse> Stages { get; set; }
+        //public List<RoomPlayerResponse> Players { get; set; }
+        //public List<RoomStageResponse> Stages { get; set; }
     }
 
     public class RoomStageResponse
