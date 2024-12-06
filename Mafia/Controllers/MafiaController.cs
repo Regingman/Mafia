@@ -57,7 +57,7 @@ namespace Mafia.WebApi.Controllers
         /// </summary>
         /// <returns></returns>
         [HttpGet("redistribute-roles/{roomId}")]
-        public async Task<IActionResult> RedistributeRolesAsync([FromQuery] int roomId)
+        public async Task<IActionResult> RedistributeRolesAsync([FromRoute] int roomId)
         {
             // Получаем список игроков из базы данных по RoomId
             var players = await _context.RoomPlayers
@@ -69,20 +69,25 @@ namespace Mafia.WebApi.Controllers
                 return NotFound("No players found for the specified RoomId.");
             }
 
-            // Пример распределения ролей (можно использовать свой алгоритм)
-            var roles = Enum.GetValues(typeof(RoomRole)).Cast<RoomRole>().ToList();
-            var random = new Random();
+            // Собираем текущий список ролей
+            var currentRoles = players.Select(p => p.RoomRole).ToList();
 
-            foreach (var player in players)
+            // Перемешиваем роли
+            var random = new Random();
+            currentRoles = currentRoles.OrderBy(_ => random.Next()).ToList();
+
+            // Перераспределяем роли игрокам
+            for (int i = 0; i < players.Count; i++)
             {
-                // Назначаем случайную роль игроку
-                player.RoomRole = roles[random.Next(roles.Count)];
-                _context.Entry(player).State = EntityState.Modified;
+                players[i].RoomRole = currentRoles[i];
+                _context.Entry(players[i]).State = EntityState.Modified;
             }
 
             // Сохраняем изменения
             await _context.SaveChangesAsync();
-            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId); 
+
+            // Уведомляем игроков о перераспределении ролей
+            var playerStatuses = _mafiaService.GetAllPlayerStatusLive(roomId);
             foreach (var temp in playerStatuses)
             {
                 await _hubContext.Clients.User(temp.PlayerUserName).SendAsync("RefreshRole", $"Роли перераспределены");
@@ -90,6 +95,7 @@ namespace Mafia.WebApi.Controllers
 
             return Ok($"Roles redistributed for {players.Count} players in Room {roomId}.");
         }
+
 
 
         /// <summary>
