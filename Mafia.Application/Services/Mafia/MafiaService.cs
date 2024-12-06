@@ -161,7 +161,7 @@ namespace Mafia.Application.Services.Mafia
                 var random = new Random();
                 foreach (var player in room.Players)
                 {
-                    int index = random.Next(4);
+                    int index = random.Next(roles.Count);
                     player.RoomRole = roles[index];
                     roles.RemoveAt(index);
                 }
